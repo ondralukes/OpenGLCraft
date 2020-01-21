@@ -1,0 +1,20 @@
+#version 330 core
+
+// Input vertex data, different for all executions of this shader.
+layout(location = 0) in vec2 screenPos;
+layout(location = 1) in vec2 inUv;
+
+// Output data ; will be interpolated for each fragment.
+out vec2 uv;
+
+void main(){
+
+	// Output position of the vertex, in clip space
+	// map [0..800][0..600] to [-1..1][-1..1]
+	vec2 pos = screenPos - vec2(640,360); // [0..800][0..600] -> [-400..400][-300..300]
+	pos /= vec2(640,360);
+	gl_Position =  vec4(pos,0,1);
+
+	// UV of the vertex. No special space for this one.
+	uv = inUv;
+}
