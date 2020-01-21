@@ -130,8 +130,10 @@ Chunk::canSeeThrough(intvec3 dir){
 }
 void
 Chunk::setGlBuffers(){
-  glm::vec3 vertices[sidesToRender.size()*6];
-  glm::vec2 UVs[sidesToRender.size()*6];
+  std::vector<glm::vec3> vertices;
+  vertices.reserve(sidesToRender.size()*6);
+  std::vector<glm::vec2> UVs;
+  UVs.reserve(sidesToRender.size()*6);
   for(int i =0;i<sidesToRender.size();i++){
     chunk_render_side side = sidesToRender[i];
     glm::vec3 pos(
