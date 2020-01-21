@@ -1,3 +1,7 @@
+#ifndef CHUNK_HPP
+#define CHUNK_HPP
+
+#include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <cstdio>
 #include <GL/glew.h>
@@ -6,6 +10,9 @@
 #include "resourceManager.hpp"
 #include "blockArray.hpp"
 #include "structs.hpp"
+#include "saveManager.hpp"
+
+class SaveManager;
 
 #define CHUNK_SIZE 8
 
@@ -18,12 +25,15 @@ public:
   void addBlock(intvec3 pos);
   void removeBlock(intvec3 pos);
   void draw(glm::mat4 projection, glm::mat4 view);
-  void update();
+  void update(bool save = true);
   bool canSeeThrough(intvec3 dir);
+  bool isLoaded = false;
   bool blocks[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
+  size_t posInFile = 0;
   static GLuint mvpID;
-private:
+  static SaveManager * saveManager;
   static BlockArray * chunks;
+private:
   void recalculateSides();
   void setGlBuffers();
   std::vector<chunk_render_side> sidesToRender;
@@ -39,3 +49,4 @@ private:
   bool posZ = true;
   bool negZ = true;
 };
+#endif

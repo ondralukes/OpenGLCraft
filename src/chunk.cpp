@@ -1,8 +1,9 @@
 #include "chunk.hpp"
-#include <glm/gtc/matrix_transform.hpp>
+
 
 BlockArray * Chunk::chunks = new BlockArray();
 GLuint Chunk::mvpID;
+SaveManager * Chunk::saveManager;
 
 Chunk *
 Chunk::getChunk(intvec3 pos){
@@ -33,6 +34,7 @@ Chunk::setChunk(intvec3 pos, Chunk * ch){
     z = (BlockArray *)(yz->get((long)pos.y));
   }
   z->set((long)pos.z,ch);
+  saveManager->saveHeader(chunks);
 }
 
 Chunk::Chunk(intvec3 pos){
@@ -44,6 +46,7 @@ Chunk::Chunk(intvec3 pos){
       }
     }
   }
+  saveManager->loadChunk(pos,this);
   textureID = ResourceManager::getTexture("textures/grass.bmp");
 }
 
@@ -58,9 +61,12 @@ Chunk::removeBlock(intvec3 pos){
 }
 
 void
-Chunk::update(){
+Chunk::update(bool save){
   recalculateSides();
   setGlBuffers();
+  if(save) {
+    saveManager->saveChunk(this);
+  }
 }
 void
 Chunk::recalculateSides(){

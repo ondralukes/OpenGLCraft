@@ -9,11 +9,11 @@ public:
   BlockArray();
   void * get(long index);
   void   set(long index, void * data);
+  size_t positiveArrayLength;
+  size_t negativeArrayLength;
 private:
   void** positiveArray;
   void** negativeArray;
-  size_t positiveArrayLength;
-  size_t negativeArrayLength;
 };
 
 #endif

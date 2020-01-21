@@ -1,6 +1,7 @@
 #define _USE_MATH_DEFINES
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -57,6 +58,10 @@ int main(){
   GLuint mvpID = glGetUniformLocation(shaderProgramID,"mvp");
   Chunk::mvpID = mvpID;
 
+  mkdir("saves", 0777);
+  SaveManager * saveManager = new SaveManager("saves/default");
+  Chunk::saveManager = saveManager;
+  saveManager->loadHeader();
   TextManager * text = new TextManager();
   text->init("textures/font.dds");
 
@@ -71,6 +76,8 @@ int main(){
 
   glm::vec3 camPos(0,15,0);
   glm::vec3 oldCamPos(0,15,0);
+
+  WorldGenerator::generate(camPos,0.0f);
 
   double yVelocity = 0;
   double lastTime = glfwGetTime();
@@ -255,6 +262,8 @@ int main(){
     } // Check if the ESC key was pressed or the window was closed
     while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
     glfwWindowShouldClose(window) == 0 );
+
+    delete saveManager;
 
     glDeleteProgram(shaderProgramID);
     glDeleteVertexArrays(1, &VertexArrayID);

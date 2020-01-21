@@ -7,7 +7,8 @@ find_package(OpenGL REQUIRED)
 
 add_subdirectory (libs)
 
-
+set(GCC_COVERAGE_COMPILE_FLAGS " -lstdc++fs")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}" )
 
 include_directories(
 	libs/glfw-3.2.1/include/
@@ -41,6 +42,7 @@ add_executable(main
 	block.cpp
 	ray.cpp
 	text.cpp
+	saveManager.cpp
 	worldGenerator.cpp
 	loadTexture.cpp
 	resourceManager.cpp
