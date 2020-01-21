@@ -4,7 +4,7 @@ BlockArray::BlockArray(){
   positiveArrayLength = 0;
   negativeArrayLength = 0;
   positiveArray = NULL;
-  negativeArray=NULL;
+  negativeArray = NULL;
 }
 
 void *

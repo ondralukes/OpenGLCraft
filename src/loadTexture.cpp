@@ -20,9 +20,7 @@ GLuint loadBmp(const char * path){
 		return 0;
 	}
 
-	// Read the header, i.e. the 54 first bytes
-
-	// If less than 54 bytes are read, problem
+	// Read the header
 	if ( fread(header, 1, 54, file)!=54 ){
 		printf("[Texture Loader] Not a correct BMP file [0]\n");
 		fclose(file);

@@ -3,7 +3,6 @@
 void loadObj(const char * filename, std::vector<glm::vec3> * vertices, std::vector<glm::vec2> * uvs){
   std::vector<glm::vec3> verticesList;
   std::vector<glm::vec2> uvsList;
-  printf("[Objects Loader] Loading %s\n",filename);
   FILE * fp = fopen(filename,"r");
   char type[64];
   while(!feof(fp)){
