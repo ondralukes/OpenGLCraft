@@ -28,8 +28,8 @@ private:
   void setGlBuffers();
   std::vector<chunk_render_side> sidesToRender;
   glm::mat4 modelMatrix;
-  GLuint vertexBuffer;
-  GLuint uvBuffer;
+  GLuint vertexBuffer = -1;
+  GLuint uvBuffer = -1;
   GLuint textureID;
 
   bool posX = true;

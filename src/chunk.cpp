@@ -195,8 +195,8 @@ Chunk::setGlBuffers(){
     glm::vec3 vertex = vertices[i];
     glm::vec2 uv = UVs[i];
   }
-  //glDeleteBuffers(1,&vertexBuffer);
-  //glDeleteBuffers(1,&uvBuffer);
+  if(vertexBuffer != -1) glDeleteBuffers(1,&vertexBuffer);
+  if(uvBuffer != -1) glDeleteBuffers(1,&uvBuffer);
   glGenBuffers(1,&vertexBuffer);
   glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
   glBufferData(GL_ARRAY_BUFFER, sidesToRender.size()*6*sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
