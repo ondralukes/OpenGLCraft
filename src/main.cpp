@@ -272,7 +272,7 @@ int main(){
       sprintf(textMsg,"blPos: [%d;%d;%d]\n",blockPos.x,blockPos.y,blockPos.z);
       text->drawText(textMsg,glm::vec2(0,84.0f),28.0f);
       sprintf(textMsg,"yVel %.2f\n",yVelocity);
-      text->drawText(textMsg,glm::vec2(0,106.0f),28.0f);
+      text->drawText(textMsg,glm::vec2(0,112.0f),28.0f);
       // Swap buffers
       glfwSwapBuffers(window);
       glfwPollEvents();
@@ -285,7 +285,7 @@ int main(){
 
     saveManager->compress();
     saveManager->cleanUp();
-    
+
     delete saveManager;
 
     glDeleteProgram(shaderProgramID);
