@@ -6,8 +6,8 @@
 
 void
 WorldGenerator::generate(glm::vec3 pos, float deltaTime){
-  for(int chx = floor(pos.x/CHUNK_SIZE)-2;chx<floor(pos.x/CHUNK_SIZE)+2;chx++){
-    for(int chz = floor(pos.z/CHUNK_SIZE)-2;chz<floor(pos.z/CHUNK_SIZE)+2;chz++){
+  for(int chx = floor(pos.x/CHUNK_SIZE)-6;chx<floor(pos.x/CHUNK_SIZE)+6;chx++){
+    for(int chz = floor(pos.z/CHUNK_SIZE)-6;chz<floor(pos.z/CHUNK_SIZE)+6;chz++){
 
       intvec3 chunkPos(
         chx,

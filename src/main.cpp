@@ -21,7 +21,7 @@ const int wHeight = 720;
 const float camHeight = 1.7f;
 const float playerHeight = 1.75f;
 
-void drawChunks(glm::mat4 projection, glm::mat4 view, intvec3 chunkPos, intvec3 prevChunkPos,int depth);
+void drawChunks(glm::mat4 projection, glm::mat4 view, intvec3 chunkPos);
 
 int main(){
   glewExperimental = true; // Needed for core profile
@@ -233,29 +233,39 @@ int main(){
         camPos + camDirection,
         up
       );
-
+      double genTime, drawTime;
+      double start, end;
+      start = glfwGetTime();
       WorldGenerator::generate(camPos,deltaTime);
+      end = glfwGetTime();
+      genTime = end - start;
       // Clear the screen
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
       glUseProgram(shaderProgramID);
+
       intvec3 chunkPos(
         floor(blockPos.x/CHUNK_SIZE),
-        floor(blockPos.y/CHUNK_SIZE),
+        floor(blockPos.y/CHUNK_SIZE) + 1,
         floor(blockPos.z/CHUNK_SIZE)
       );
 
-      drawChunks(projection,view,chunkPos,intvec3(656565,656565,655656),0);
+      start = glfwGetTime();
+      drawChunks(projection,view,chunkPos);
+      end = glfwGetTime();
+      drawTime = end - start;
 
       char textMsg[256];
       sprintf(textMsg,"fps :%.2f\n",1.0f/deltaTime);
       text->drawText(textMsg,glm::vec2(0,0),28.0f);
-      sprintf(textMsg,"pos: [%.2f;%.2f;%.2f]\n",camPos.x,camPos.y,camPos.z,yVelocity);
+      sprintf(textMsg,"gen: %.2f drw: %.2f\n",genTime*1000,drawTime*1000);
       text->drawText(textMsg,glm::vec2(0,28.0f),28.0f);
-      sprintf(textMsg,"blPos: [%d;%d;%d]\n",blockPos.x,blockPos.y,blockPos.z);
+      sprintf(textMsg,"pos: [%.2f;%.2f;%.2f]\n",camPos.x,camPos.y,camPos.z,yVelocity);
       text->drawText(textMsg,glm::vec2(0,56.0f),28.0f);
-      sprintf(textMsg,"yVel %.2f\n",yVelocity);
+      sprintf(textMsg,"blPos: [%d;%d;%d]\n",blockPos.x,blockPos.y,blockPos.z);
       text->drawText(textMsg,glm::vec2(0,84.0f),28.0f);
+      sprintf(textMsg,"yVel %.2f\n",yVelocity);
+      text->drawText(textMsg,glm::vec2(0,106.0f),28.0f);
       // Swap buffers
       glfwSwapBuffers(window);
       glfwPollEvents();
@@ -274,28 +284,20 @@ int main(){
     return 0;
   }
 
-  void drawChunks(glm::mat4 projection, glm::mat4 view, intvec3 chunkPos, intvec3 prevChunkPos, int depth){
-    if(depth == 6) return;
-    Chunk * ch = Chunk::getChunk(chunkPos);
-    if(ch != NULL){
-      ch->draw(projection,view);
-    }
-    for(int d =-1;d<=1;d+=2){
-      for(int r = 0;r<3;r++){
-        int dx = r==0?d:0;
-        int dy = r==1?d:0;
-        int dz = r==2?d:0;
-        intvec3 dir(dx,dy,dz);
-        intvec3 nextPos(
-          chunkPos.x+dx,
-          chunkPos.y+dy,
-          chunkPos.z+dz
-        );
-        if(prevChunkPos!=nextPos){
-          if(ch == NULL){
-            drawChunks(projection,view,nextPos,chunkPos,depth+1);
-          } else if(ch->canSeeThrough(dir)) {
-            drawChunks(projection,view,nextPos,chunkPos, depth+1);
+  void drawChunks(glm::mat4 projection, glm::mat4 view, intvec3 chunkPos){
+    for(int x =-8;x<8;x++){
+      for(int y =-4;y<4;y++){
+        for(int z =-8;z<8;z++){
+          intvec3 chP(
+            chunkPos.x + x,
+            chunkPos.y + y,
+            chunkPos.z + z
+          );
+          Chunk * ch = Chunk::getChunk(chP);
+          if(ch != NULL){
+            if(ch->doDraw != 0){
+              ch->draw(projection,view);
+            }
           }
         }
       }

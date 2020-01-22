@@ -37,7 +37,8 @@ Chunk::setChunk(intvec3 pos, Chunk * ch){
   saveManager->saveHeader(chunks);
 }
 
-Chunk::Chunk(intvec3 pos){
+Chunk::Chunk(intvec3 p){
+  pos = p;
   modelMatrix = glm::translate(glm::mat4(1.0f),glm::vec3(pos.x*CHUNK_SIZE,pos.y*CHUNK_SIZE,pos.z*CHUNK_SIZE));
   for(int x =0;x<CHUNK_SIZE;x++){
     for(int y =0;y<CHUNK_SIZE;y++){
@@ -89,7 +90,6 @@ Chunk::recalculateSides(){
         if(y == CHUNK_SIZE -1)posYCount++;
         if(z == 0)negZCount++;
         if(z == CHUNK_SIZE -1)posZCount++;
-
         for(int d =-1;d<=1;d+=2){
           for(int r = 0;r<3;r++){
             int dx = r==0?d:0;
@@ -103,7 +103,7 @@ Chunk::recalculateSides(){
               dz +z== -1||dz+z==CHUNK_SIZE)
               {
                 render = true;
-              } else{
+              } else {
                 if(!blocks[dx+x][dy+y][dz+z]){
                   render = true;
                 }
@@ -123,7 +123,23 @@ Chunk::recalculateSides(){
     negY = (negYCount != CHUNK_SIZE*CHUNK_SIZE);
     posZ = (posZCount != CHUNK_SIZE*CHUNK_SIZE);
     negZ = (negZCount != CHUNK_SIZE*CHUNK_SIZE);
-}
+    int doDrawConst = 1;
+    for(int d =-1;d<=1;d+=2){
+      for(int r = 0;r<3;r++){
+        intvec3 dir(
+          r==0?d:0,
+          r==1?d:0,
+          r==2?d:0
+        );
+        Chunk * ch = Chunk::getChunk(pos+dir);
+        if(ch != NULL){
+          bool render = canSeeThrough(dir);
+          if(render) ch->doDraw |= doDrawConst; else ch->doDraw &= ~doDrawConst;
+        }
+        doDrawConst = doDrawConst << 1;
+      }
+    }
+  }
 
 bool
 Chunk::canSeeThrough(intvec3 dir){
