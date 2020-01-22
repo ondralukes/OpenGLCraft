@@ -197,12 +197,16 @@ int main(){
       camPos.y = oldCamPos.y;
       yVelocity = 0;
     }
-    for(int h = 1;h<3;h++){
+    for(int h = 1;h<4;h++){
       for(int d = -1;d<=1;d+=2){
         for(int r = 0;r<2;r++){
+          float py;
+          if(h==1) py = floor(camPos.y-camHeight+0.55f);
+          if(h==2) py = floor(camPos.y-camHeight+1.35f);
+          if(h==3) py = ceil(camPos.y-camHeight+1.35f);
           intvec3 p(
             round(camPos.x+ (r==0?d:0)),
-            h==1?floor(camPos.y-camHeight+h-0.45f):ceil(camPos.y-camHeight+h-0.65f),
+            py,
             round(camPos.z+ (r==1?d:0))
           );
           float dx =  camPos.x - (blockPos.x);
