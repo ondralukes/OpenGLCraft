@@ -64,6 +64,22 @@ void
 Chunk::update(bool save){
   recalculateSides();
   setGlBuffers();
+
+  //Recalculate adjacent chunks to update doDraw
+  for(int d =-1;d<=1;d+=2){
+    for(int r = 0;r<3;r++){
+      intvec3 dir(
+        r==0?d:0,
+        r==1?d:0,
+        r==2?d:0
+      );
+      Chunk * ch = Chunk::getChunk(pos+dir);
+      if(ch != NULL){
+        ch->recalculateSides();
+      }
+    }
+  }
+
   if(save) {
     saveManager->saveChunk(this);
   }

@@ -32,12 +32,12 @@ public:
   void draw(glm::mat4 projection, glm::mat4 view);
   void update(bool save = true);
   bool canSeeThrough(intvec3 dir);
+  void recalculateSides();
   bool isLoaded = false;
   Blocks::Block * blocks[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
   size_t posInFile = 0;
   int doDraw = 0;
 private:
-  void recalculateSides();
   void setGlBuffers();
   intvec3 pos;
   std::vector<chunk_render_side> sidesToRender;
