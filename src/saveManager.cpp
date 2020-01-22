@@ -13,18 +13,25 @@ SaveManager::SaveManager(const char * savePath){
   sprintf(tmpFile,"%stmp",dataFilename);
   std::ifstream  src(dataFilename, std::ios::binary);
   std::ofstream  dst(tmpFile, std::ios::binary);
-  dst << src.rdbuf();
-  dst.close();
-  src.close();
 
-  FILE * oldFp = fopen(tmpFile,"rb");
-  datafp = fopen(dataFilename,"wb+");
-  char buffer[2048];
-  while(!feof(oldFp)){
-    size_t read = fread(buffer, sizeof(char),2048,oldFp);
-    fwrite(buffer, sizeof(char),read,datafp);
+
+  if(!src.good()){
+    newFile = true;
+    datafp = fopen(dataFilename,"wb+");
+  }else{
+    dst << src.rdbuf();
+    src.close();
+    dst.close();
+    datafp = fopen(dataFilename,"wb+");
+    FILE * oldFp = fopen(tmpFile,"rb");
+    char buffer[2048];
+    while(!feof(oldFp)){
+      size_t read = fread(buffer, sizeof(char),2048,oldFp);
+      fwrite(buffer, sizeof(char),read,datafp);
+    }
+    fclose(oldFp);
   }
-  fclose(oldFp);
+
 
 }
 
@@ -221,6 +228,7 @@ SaveManager::savePlayerPos(glm::vec3 pos){
 
 glm::vec3
 SaveManager::loadPlayerPos(){
+  if(newFile) return glm::vec3(0.0f,5.0f,0.0f);
   glm::vec3 pos;
   fseek(datafp,0,SEEK_SET);
   fread(&pos, sizeof(glm::vec3), 1, datafp);
@@ -235,6 +243,7 @@ SaveManager::savePlayerRot(glm::vec2 rot){
 
 glm::vec2
 SaveManager::loadPlayerRot(){
+  if(newFile) return glm::vec2(0.0f,0.0f);
   glm::vec2 rot;
   fseek(datafp, sizeof(glm::vec3), SEEK_SET);
   fread(&rot, sizeof(glm::vec2), 1, datafp);

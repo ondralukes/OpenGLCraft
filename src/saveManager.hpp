@@ -25,6 +25,7 @@ private:
   BlockArray * chunkPositions;
   char headerFilename[1024];
   char dataFilename[1024];
+  bool newFile = false;
 
   //Leave space for player position and rotation
   size_t dataFilePos = sizeof(glm::vec3) + sizeof(glm::vec2);
