@@ -71,11 +71,11 @@ int main(){
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
 
-  double xAngle = 0;
-  double yAngle = 0;
+  double xAngle = -10;
+  double yAngle = -10;
 
-  glm::vec3 camPos(0,15,0);
-  glm::vec3 oldCamPos(0,15,0);
+  glm::vec3 camPos = saveManager->loadPlayerPos();
+  glm::vec3 oldCamPos = camPos;
 
   WorldGenerator::generate(camPos,0.0f);
 
@@ -90,8 +90,13 @@ int main(){
     glfwGetCursorPos(window, &mouseX, &mouseY);
     glfwSetCursorPos(window, wWidth/2, wHeight/2);
 
-    xAngle -= (mouseX - wWidth/2)/100;
-    yAngle -= (mouseY - wHeight/2)/100;
+    if(xAngle == -10){
+      xAngle = saveManager->loadPlayerRot().x;
+      yAngle = saveManager->loadPlayerRot().y;
+    } else {
+      xAngle -= (mouseX - wWidth/2)/100;
+      yAngle -= (mouseY - wHeight/2)/100;
+    }
 
     if(xAngle>M_PI*2)  xAngle -= M_PI*2;
     if(yAngle>M_PI/2)  yAngle = M_PI/2;
@@ -273,6 +278,9 @@ int main(){
     while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
     glfwWindowShouldClose(window) == 0 );
 
+    saveManager->savePlayerPos(camPos);
+    saveManager->savePlayerRot(glm::vec2(xAngle, yAngle));
+    
     delete saveManager;
 
     glDeleteProgram(shaderProgramID);

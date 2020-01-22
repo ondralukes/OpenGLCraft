@@ -212,3 +212,31 @@ SaveManager::loadChunk(intvec3 pos, Chunk * ch){
     ch->isLoaded = true;
   }
 }
+
+void
+SaveManager::savePlayerPos(glm::vec3 pos){
+  fseek(datafp,0,SEEK_SET);
+  fwrite(&pos, sizeof(glm::vec3), 1, datafp);
+}
+
+glm::vec3
+SaveManager::loadPlayerPos(){
+  glm::vec3 pos;
+  fseek(datafp,0,SEEK_SET);
+  fread(&pos, sizeof(glm::vec3), 1, datafp);
+  return pos;
+}
+
+void
+SaveManager::savePlayerRot(glm::vec2 rot){
+  fseek(datafp, sizeof(glm::vec3), SEEK_SET);
+  fwrite(&rot, sizeof(glm::vec2), 1, datafp);
+}
+
+glm::vec2
+SaveManager::loadPlayerRot(){
+  glm::vec2 rot;
+  fseek(datafp, sizeof(glm::vec3), SEEK_SET);
+  fread(&rot, sizeof(glm::vec2), 1, datafp);
+  return rot;
+}
