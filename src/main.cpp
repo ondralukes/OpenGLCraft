@@ -138,15 +138,17 @@ int main(){
     }
 
     static bool spacePressed = false;
+    static bool inAir = false;
     if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS&&!spacePressed){
-      yVelocity += 5.0f;
+      if(!inAir) yVelocity += 5.0f;
       spacePressed = true;
+      inAir = true;
     } else if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE){
       spacePressed = false;
     }
     intvec3 blockPos(
       round(camPos.x),
-      round(camPos.y-camHeight),
+      ceil(camPos.y-camHeight-0.5f),
       round(camPos.z)
     );
 
@@ -178,15 +180,17 @@ int main(){
 
 
     yVelocity -= deltaTime*9.81f;
+    inAir = true;
     if(isBlock(blockPos)){
       if(yVelocity < 0) yVelocity = 0;
+      inAir = false;
     }
 
     camPos.y += yVelocity * deltaTime;
 
     intvec3 aboveBlockPos(
       round(camPos.x),
-      round(camPos.y-camHeight+playerHeight),
+      ceil(camPos.y-camHeight+playerHeight-0.5),
       round(camPos.z)
     );
     if(isBlock(aboveBlockPos)){
@@ -197,9 +201,9 @@ int main(){
       for(int d = -1;d<=1;d+=2){
         for(int r = 0;r<2;r++){
           intvec3 p(
-            blockPos.x + (r==0?d:0),
-            blockPos.y + h,
-            blockPos.z + (r==1?d:0)
+            round(camPos.x+ (r==0?d:0)),
+            floor(camPos.y-camHeight+h-0.45f),
+            round(camPos.z+ (r==1?d:0))
           );
           float dx =  camPos.x - (blockPos.x);
           float dz =  camPos.z - (blockPos.z);
