@@ -14,6 +14,8 @@ SaveManager::SaveManager(const char * savePath){
   std::ifstream  src(dataFilename, std::ios::binary);
   std::ofstream  dst(tmpFile, std::ios::binary);
   dst << src.rdbuf();
+  dst.close();
+  src.close();
 
   FILE * oldFp = fopen(tmpFile,"rb");
   datafp = fopen(dataFilename,"wb+");
@@ -58,12 +60,12 @@ SaveManager::write(BlockArray * arr, FILE * fp, int depth, size_t * currentDataP
       }
       write((BlockArray *) arr->get(i),fp,depth-1, currentDataPos,pos);
     } else {
-      pos.z = -i;
+      pos.z = i;
       Chunk * ch = (Chunk *) arr->get(i);
       if(ch!=NULL){
         if(ch->posInFile ==0){
           ch->posInFile = *currentDataPos;
-          *currentDataPos += sizeof(char) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
+          *currentDataPos += sizeof(bool) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
         }
         fwrite(&(ch->posInFile),sizeof(size_t), 1, fp);
 
@@ -88,7 +90,7 @@ SaveManager::write(BlockArray * arr, FILE * fp, int depth, size_t * currentDataP
       if(ch!=NULL){
         if(ch->posInFile == 0){
           ch->posInFile = *currentDataPos;
-          *currentDataPos += sizeof(char) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
+          *currentDataPos += sizeof(bool) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
         }
         fwrite(&(ch->posInFile),sizeof(size_t), 1, fp);
       } else {
@@ -117,7 +119,9 @@ SaveManager::read(FILE * fp, int depth, intvec3 pos){
       size_t posInFile;
       fread(&posInFile,sizeof(size_t), 1, fp);
       arr->set(i,(void *) posInFile);
-      dataFilePos = sizeof(char) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
+      if(posInFile + sizeof(bool) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE > dataFilePos){
+        dataFilePos = posInFile + sizeof(bool) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
+      }
     }
   }
   size_t negativeArrayLength = 0;
@@ -135,7 +139,9 @@ SaveManager::read(FILE * fp, int depth, intvec3 pos){
       size_t posInFile;
       fread(&posInFile,sizeof(size_t), 1, fp);
       arr->set(-i-1,(void *) posInFile);
-      dataFilePos = sizeof(char) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
+      if(posInFile + sizeof(bool) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE > dataFilePos){
+        dataFilePos = posInFile + sizeof(bool) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
+      }
     }
   }
   return arr;
@@ -202,7 +208,7 @@ SaveManager::loadChunk(intvec3 pos, Chunk * ch){
         }
       }
     }
-    ch->update();
+    ch->update(false);
     ch->isLoaded = true;
   }
 }

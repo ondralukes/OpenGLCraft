@@ -22,7 +22,6 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
           for(int x = 0;x<CHUNK_SIZE;x++){
             for(int y = -8*CHUNK_SIZE;y<0;y++){
               for(int z = 0;z<CHUNK_SIZE;z++){
-
                 addBlock(intvec3(chunkPos.x*CHUNK_SIZE+x,y,chunkPos.z*CHUNK_SIZE+z),false);
               }
             }
@@ -41,7 +40,6 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
             if(ch==NULL){
               Chunk::setChunk(intvec3(chunkPos.x,y,chunkPos.z), new Chunk(intvec3(chunkPos.x,y,chunkPos.z)));
               ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
-
             }
             ch->update(false);
           }
