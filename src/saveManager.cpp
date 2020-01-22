@@ -63,6 +63,7 @@ SaveManager::write(BlockArray * arr, FILE * fp, int depth, size_t * currentDataP
       if(ch!=NULL){
         if(ch->posInFile ==0){
           ch->posInFile = *currentDataPos;
+          *currentDataPos += sizeof(char) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
         }
         fwrite(&(ch->posInFile),sizeof(size_t), 1, fp);
 
@@ -70,7 +71,6 @@ SaveManager::write(BlockArray * arr, FILE * fp, int depth, size_t * currentDataP
         size_t zero = 0;
         fwrite(&zero,sizeof(size_t), 1, fp);
       }
-      *currentDataPos += sizeof(char) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
     }
   }
   fwrite(&(arr->negativeArrayLength), sizeof(size_t), 1,fp);
@@ -88,13 +88,13 @@ SaveManager::write(BlockArray * arr, FILE * fp, int depth, size_t * currentDataP
       if(ch!=NULL){
         if(ch->posInFile == 0){
           ch->posInFile = *currentDataPos;
+          *currentDataPos += sizeof(char) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
         }
         fwrite(&(ch->posInFile),sizeof(size_t), 1, fp);
       } else {
         size_t zero = 0;
         fwrite(&zero,sizeof(size_t), 1, fp);
       }
-      *currentDataPos += sizeof(char) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
     }
   }
 }
@@ -151,7 +151,6 @@ SaveManager::loadHeader(){
 
 void
 SaveManager::saveChunk(Chunk * chunk){
-
   fseek(datafp, (long)chunk->posInFile, SEEK_SET);
   bool blockBuffer[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE];
   int x = 0,y = 0,z=0;
