@@ -202,7 +202,7 @@ int main(){
         for(int r = 0;r<2;r++){
           intvec3 p(
             round(camPos.x+ (r==0?d:0)),
-            floor(camPos.y-camHeight+h-0.45f),
+            h==1?floor(camPos.y-camHeight+h-0.45f):ceil(camPos.y-camHeight+h-0.65f),
             round(camPos.z+ (r==1?d:0))
           );
           float dx =  camPos.x - (blockPos.x);
