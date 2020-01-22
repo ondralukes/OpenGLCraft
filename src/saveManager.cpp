@@ -16,7 +16,10 @@ SaveManager::SaveManager(const char * savePath){
   if(std::ifstream(compressedDataFile).good() &&
   std::ifstream(compressedDataFile).good())
   {
+    newFile = false;
     decompress();
+  } else {
+    newFile = true;
   }
 }
 
@@ -219,7 +222,7 @@ SaveManager::savePlayerPos(glm::vec3 pos){
 
 glm::vec3
 SaveManager::loadPlayerPos(){
-  if(newFile) return glm::vec3(0.0f,5.0f,0.0f);
+  if(newFile) return glm::vec3(0.0f,100.0f,0.0f);
   glm::vec3 pos;
   fseek(datafp,0,SEEK_SET);
   fread(&pos, sizeof(glm::vec3), 1, datafp);

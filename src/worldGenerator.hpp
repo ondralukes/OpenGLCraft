@@ -11,4 +11,6 @@
 class WorldGenerator{
   public:
     static void generate(glm::vec3 pos, float deltaTime);
+  private:
+    static void generateTerrain(int ** map, int xSize, int ySize);
 };
