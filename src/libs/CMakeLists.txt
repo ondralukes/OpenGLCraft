@@ -11,6 +11,7 @@ add_subdirectory (glfw-3.2.1)
 include_directories(
 	glfw-3.2.1/include/GLFW/
   glew-2.1.0/include/
+	zlib/
 )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")

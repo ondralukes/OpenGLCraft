@@ -1,4 +1,4 @@
-#include "block.hpp"
+#include "blockUtils.hpp"
 #include "structs.hpp"
 #include "chunk.hpp"
 #include <cstdio>
@@ -18,7 +18,7 @@ bool isBlock(intvec3 pos){
     pos.z - chunkPos.z*CHUNK_SIZE
   );
 
-  return ch->blocks[relPos.x][relPos.y][relPos.z];
+  return ch->blocks[relPos.x][relPos.y][relPos.z] != NULL;
 }
 
 void removeBlock(intvec3 pos, bool update){
@@ -34,11 +34,11 @@ void removeBlock(intvec3 pos, bool update){
     pos.y - chunkPos.y*CHUNK_SIZE,
     pos.z - chunkPos.z*CHUNK_SIZE
   );
-  ch->blocks[relPos.x][relPos.y][relPos.z] = false;
+  ch->blocks[relPos.x][relPos.y][relPos.z] = NULL;
   if(update)ch->update();
 }
 
-void addBlock(intvec3 pos, bool update){
+void addBlock(intvec3 pos, Blocks::Block * bl, bool update){
   intvec3 chunkPos(
     floor(pos.x/(float)CHUNK_SIZE),
     floor(pos.y/(float)CHUNK_SIZE),
@@ -54,6 +54,6 @@ void addBlock(intvec3 pos, bool update){
     pos.y - chunkPos.y*CHUNK_SIZE,
     pos.z - chunkPos.z*CHUNK_SIZE
   );
-  ch->blocks[relPos.x][relPos.y][relPos.z] = true;
+  ch->blocks[relPos.x][relPos.y][relPos.z] = bl;
   if(update)ch->update();
 }

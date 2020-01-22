@@ -9,12 +9,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 //#include "structs.hpp"
+#include "blocks/blocks.hpp"
 #include "chunk.hpp"
 #include "loadShaders.hpp"
 #include "worldGenerator.hpp"
 #include "text.hpp"
-#include "block.hpp"
+#include "blockUtils.hpp"
 #include "ray.hpp"
+
 
 const int wWidth = 1280;
 const int wHeight = 720;
@@ -166,7 +168,7 @@ int main(){
       intvec3 placePos;
       if(getLookingAt(camPos,camDirection,NULL,&placePos)){
         if(placePos.x != blockPos.x || placePos.z != blockPos.z ||(placePos.y != blockPos.y+1 && placePos.y != blockPos.y+2)){
-          addBlock(placePos);
+          addBlock(placePos, new Blocks::Stone());
         }
       }
       rMousePressed = true;
@@ -280,6 +282,9 @@ int main(){
 
     saveManager->savePlayerPos(camPos);
     saveManager->savePlayerRot(glm::vec2(xAngle, yAngle));
+
+    saveManager->compress();
+    saveManager->cleanUp();
     
     delete saveManager;
 

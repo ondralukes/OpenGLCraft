@@ -14,6 +14,7 @@ include_directories(
 	libs/glfw-3.2.1/include/
   libs/glew-2.1.0/include/
 	libs/glm/
+	libs/zlib/
 	.
 )
 
@@ -32,6 +33,15 @@ add_definitions(
 )
 
 # add the executable
+
+file(GLOB ALL_BLOCKS
+  "${CMAKE_SOURCE_DIR}/blocks/*"
+)
+
+file(GLOB ZLIB_FILES
+  "${CMAKE_SOURCE_DIR}/libs/zlib/*.c"
+)
+
 add_executable(main
 	main.cpp
   chunk.cpp
@@ -39,13 +49,15 @@ add_executable(main
 	loadShaders.cpp
 	loadObj.cpp
 	blockArray.cpp
-	block.cpp
+	blockUtils.cpp
 	ray.cpp
 	text.cpp
 	saveManager.cpp
 	worldGenerator.cpp
 	loadTexture.cpp
 	resourceManager.cpp
+	${ALL_BLOCKS}
+	${ZLIB_FILES}
 )
 
 target_link_libraries(main

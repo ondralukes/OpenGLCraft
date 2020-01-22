@@ -1,7 +1,4 @@
 #include "saveManager.hpp"
-#include <string.h>
-#include <fstream>
-#include "chunk.hpp"
 
 SaveManager::SaveManager(const char * savePath){
   strcpy(headerFilename,savePath);
@@ -9,30 +6,18 @@ SaveManager::SaveManager(const char * savePath){
   strcpy(dataFilename,savePath);
   strcat(dataFilename,".data");
   chunkPositions = new BlockArray();
-  char tmpFile[1024];
-  sprintf(tmpFile,"%stmp",dataFilename);
-  std::ifstream  src(dataFilename, std::ios::binary);
-  std::ofstream  dst(tmpFile, std::ios::binary);
 
+  datafp = fopen(dataFilename,"wb+");
 
-  if(!src.good()){
-    newFile = true;
-    datafp = fopen(dataFilename,"wb+");
-  }else{
-    dst << src.rdbuf();
-    src.close();
-    dst.close();
-    datafp = fopen(dataFilename,"wb+");
-    FILE * oldFp = fopen(tmpFile,"rb");
-    char buffer[2048];
-    while(!feof(oldFp)){
-      size_t read = fread(buffer, sizeof(char),2048,oldFp);
-      fwrite(buffer, sizeof(char),read,datafp);
-    }
-    fclose(oldFp);
+  char compressedDataFile[1030];
+  sprintf(compressedDataFile,"%s.gz", dataFilename);
+  char compressedHeaderFile[1030];
+  sprintf(compressedHeaderFile,"%s.gz", headerFilename);
+  if(std::ifstream(compressedDataFile).good() &&
+  std::ifstream(compressedDataFile).good())
+  {
+    decompress();
   }
-
-
 }
 
 SaveManager::~SaveManager(){
@@ -72,7 +57,7 @@ SaveManager::write(BlockArray * arr, FILE * fp, int depth, size_t * currentDataP
       if(ch!=NULL){
         if(ch->posInFile ==0){
           ch->posInFile = *currentDataPos;
-          *currentDataPos += sizeof(bool) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
+          *currentDataPos += sizeof(Blocks::block_data) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
         }
         fwrite(&(ch->posInFile),sizeof(size_t), 1, fp);
 
@@ -97,7 +82,7 @@ SaveManager::write(BlockArray * arr, FILE * fp, int depth, size_t * currentDataP
       if(ch!=NULL){
         if(ch->posInFile == 0){
           ch->posInFile = *currentDataPos;
-          *currentDataPos += sizeof(bool) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
+          *currentDataPos += sizeof(Blocks::block_data) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
         }
         fwrite(&(ch->posInFile),sizeof(size_t), 1, fp);
       } else {
@@ -126,8 +111,8 @@ SaveManager::read(FILE * fp, int depth, intvec3 pos){
       size_t posInFile;
       fread(&posInFile,sizeof(size_t), 1, fp);
       arr->set(i,(void *) posInFile);
-      if(posInFile + sizeof(bool) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE > dataFilePos){
-        dataFilePos = posInFile + sizeof(bool) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
+      if(posInFile + sizeof(Blocks::block_data) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE > dataFilePos){
+        dataFilePos = posInFile + sizeof(Blocks::block_data) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
       }
     }
   }
@@ -146,8 +131,8 @@ SaveManager::read(FILE * fp, int depth, intvec3 pos){
       size_t posInFile;
       fread(&posInFile,sizeof(size_t), 1, fp);
       arr->set(-i-1,(void *) posInFile);
-      if(posInFile + sizeof(bool) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE > dataFilePos){
-        dataFilePos = posInFile + sizeof(bool) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
+      if(posInFile + sizeof(Blocks::block_data) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE > dataFilePos){
+        dataFilePos = posInFile + sizeof(Blocks::block_data) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
       }
     }
   }
@@ -165,10 +150,16 @@ SaveManager::loadHeader(){
 void
 SaveManager::saveChunk(Chunk * chunk){
   fseek(datafp, (long)chunk->posInFile, SEEK_SET);
-  bool blockBuffer[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE];
+  Blocks::block_data blockBuffer[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE];
   int x = 0,y = 0,z=0;
   for(int i =0;i<CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE;i++){
-    blockBuffer[i] = chunk->blocks[x][y][z];
+    if(chunk->blocks[x][y][z] != NULL){
+      blockBuffer[i] = chunk->blocks[x][y][z]->getBlockData();
+    } else {
+      Blocks::block_data data;
+      data.type = Blocks::NONE;
+      blockBuffer[i] = data;
+    }
     x++;
     if(x==CHUNK_SIZE){
       x=0;
@@ -179,7 +170,7 @@ SaveManager::saveChunk(Chunk * chunk){
       }
     }
   }
-  fwrite(blockBuffer,sizeof(bool),CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE,datafp);
+  fwrite(blockBuffer,sizeof(Blocks::block_data),CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE,datafp);
 }
 
 void
@@ -200,11 +191,11 @@ SaveManager::loadChunk(intvec3 pos, Chunk * ch){
     ch->posInFile = posInFile;
     if(datafp == NULL) return;
     fseek(datafp, (long)ch->posInFile, SEEK_SET);
-    bool buffer[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE];
-    fread(buffer,sizeof(bool),CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE,datafp);
+    Blocks::block_data buffer[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE];
+    fread(buffer,sizeof(Blocks::block_data),CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE,datafp);
     int x = 0,y = 0,z=0;
     for(int i =0;i<CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE;i++){
-      ch->blocks[x][y][z] = buffer[i];
+      ch->blocks[x][y][z] = Blocks::Block::decodeBlock(buffer[i]);
       x++;
       if(x==CHUNK_SIZE){
         x=0;
@@ -248,4 +239,64 @@ SaveManager::loadPlayerRot(){
   fseek(datafp, sizeof(glm::vec3), SEEK_SET);
   fread(&rot, sizeof(glm::vec2), 1, datafp);
   return rot;
+}
+
+void
+SaveManager::compress(){
+  char buffer[1024*1024];
+
+  char compressedDataFile[1030];
+  sprintf(compressedDataFile,"%s.gz", dataFilename);
+  gzFile gzfp = gzopen(compressedDataFile,"wb");
+  fseek(datafp,0,SEEK_SET);
+  while(!feof(datafp)){
+    size_t dataRead = fread(buffer,sizeof(char),1024*1024, datafp);
+    gzwrite(gzfp, buffer, dataRead);
+  }
+  gzclose(gzfp);
+
+  char compressedHeaderFile[1030];
+  sprintf(compressedHeaderFile,"%s.gz", headerFilename);
+  gzfp = gzopen(compressedHeaderFile,"wb");
+  fseek(datafp,0,SEEK_SET);
+  FILE * fp = fopen(headerFilename,"rb");
+  while(!feof(fp)){
+    size_t dataRead = fread(buffer,sizeof(char),1024*1024, fp);
+    gzwrite(gzfp, buffer, dataRead);
+  }
+  fclose(fp);
+  gzclose(gzfp);
+}
+
+void
+SaveManager::decompress(){
+  char buffer[1024*1024];
+
+  char compressedDataFile[1030];
+  sprintf(compressedDataFile,"%s.gz", dataFilename);
+  gzFile gzfp = gzopen(compressedDataFile,"rb");
+  fseek(datafp,0,SEEK_SET);
+  while(!gzeof(gzfp)){
+    size_t dataRead = gzread(gzfp, buffer,sizeof(char)*1024*1024);
+    fwrite(buffer, sizeof(char), dataRead, datafp);
+  }
+  gzclose(gzfp);
+
+  char compressedHeaderFile[1030];
+  sprintf(compressedHeaderFile,"%s.gz", headerFilename);
+  gzfp = gzopen(compressedHeaderFile,"rb");
+  fseek(datafp,0,SEEK_SET);
+  FILE * fp = fopen(headerFilename,"wb");
+  while(!gzeof(gzfp)){
+    size_t dataRead = gzread(gzfp, buffer,sizeof(char)*1024*1024);
+    fwrite(buffer, sizeof(char), dataRead, fp);
+  }
+  fclose(fp);
+  gzclose(gzfp);
+}
+
+void
+SaveManager::cleanUp(){
+  remove(dataFilename);
+  remove(headerFilename);
 }

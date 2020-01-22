@@ -43,22 +43,21 @@ Chunk::Chunk(intvec3 p){
   for(int x =0;x<CHUNK_SIZE;x++){
     for(int y =0;y<CHUNK_SIZE;y++){
       for(int z =0;z<CHUNK_SIZE;z++){
-        blocks[x][y][z] = false;
+        blocks[x][y][z] = NULL;
       }
     }
   }
   saveManager->loadChunk(pos,this);
-  textureID = ResourceManager::getTexture("textures/grass.bmp");
 }
 
 void
-Chunk::addBlock(intvec3 pos){
-  blocks[pos.x][pos.y][pos.z] = true;
+Chunk::addBlock(intvec3 pos, Blocks::Block * bl){
+  blocks[pos.x][pos.y][pos.z] = bl;
 }
 
 void
 Chunk::removeBlock(intvec3 pos){
-  blocks[pos.x][pos.y][pos.z] = false;
+  blocks[pos.x][pos.y][pos.z] = NULL;
 }
 
 void
@@ -69,9 +68,11 @@ Chunk::update(bool save){
     saveManager->saveChunk(this);
   }
 }
+
 void
 Chunk::recalculateSides(){
   sidesToRender.clear();
+  std::map<GLuint, std::vector<chunk_render_side>> textureRenderMap;
   int posXCount = 0;
   int negXCount = 0;
   int posYCount = 0;
@@ -82,7 +83,7 @@ Chunk::recalculateSides(){
     for(int y =0;y<CHUNK_SIZE;y++){
       for(int z =0;z<CHUNK_SIZE;z++){
 
-        if(!blocks[x][y][z])continue;
+        if(blocks[x][y][z]==NULL)continue;
 
         if(x == 0)negXCount++;
         if(x == CHUNK_SIZE -1) posXCount++;
@@ -104,19 +105,32 @@ Chunk::recalculateSides(){
               {
                 render = true;
               } else {
-                if(!blocks[dx+x][dy+y][dz+z]){
+                if(blocks[dx+x][dy+y][dz+z]==NULL){
                   render = true;
                 }
               }
               if(render){
-                chunk_render_side side(intvec3(x,y,z),dir);
-                sidesToRender.push_back(side);
+                Blocks::Block * bl = blocks[x][y][z];
+                chunk_render_side side(intvec3(x,y,z), dir, bl->textureID);
+                if(textureRenderMap.find(bl->textureID) == textureRenderMap.end()){
+                  textureRenderMap.insert({bl->textureID, std::vector<chunk_render_side>()});
+                }
+                textureRenderMap[bl->textureID].push_back(side);
               }
             }
           }
         }
       }
     }
+
+    //Put textures together
+    std::map<GLuint, std::vector<chunk_render_side>>::iterator it;
+    for(it = textureRenderMap.begin(); it != textureRenderMap.end(); it++){
+      for(int i =0;i<it->second.size();i++){
+        sidesToRender.push_back(it->second[i]);
+      }
+    }
+
     posX = (posXCount != CHUNK_SIZE*CHUNK_SIZE);
     negX = (negXCount != CHUNK_SIZE*CHUNK_SIZE);
     posY = (posYCount != CHUNK_SIZE*CHUNK_SIZE);
@@ -232,10 +246,9 @@ void
 Chunk::draw(glm::mat4 projection, glm::mat4 view){
   glm::mat4 mvp = projection*view*modelMatrix;
   glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvp[0][0]);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, textureID);
 
-  glUniform1i(textureID, 0);
+
+
 
   //vertex
   glEnableVertexAttribArray(0);
@@ -260,7 +273,25 @@ Chunk::draw(glm::mat4 projection, glm::mat4 view){
     0,                                // stride
     (void*)0                          // array buffer offset
   );
-  glDrawArrays(GL_TRIANGLES, 0, sidesToRender.size()*6);
+  GLuint currentTex = 0;
+  int offset = 0;
+  int length = 0;
+  for(int i =0;i<sidesToRender.size();i++){
+    if(sidesToRender[i].textureID != currentTex){
+      if(currentTex != 0){
+        glDrawArrays(GL_TRIANGLES, offset, length);
+        offset += length;
+        length = 0;
+      }
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, sidesToRender[i].textureID);
+      glUniform1i(sidesToRender[i].textureID, 0);
+      currentTex = sidesToRender[i].textureID;
+    }
+    length += 6;
+  }
+  glDrawArrays(GL_TRIANGLES, offset, length);
+
   glDisableVertexAttribArray(0);
   glDisableVertexAttribArray(1);
 }

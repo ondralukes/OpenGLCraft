@@ -4,6 +4,11 @@
 #include <glm/glm.hpp>
 #include "blockArray.hpp"
 #include "chunk.hpp"
+#include <string.h>
+#include <fstream>
+#include "chunk.hpp"
+#include "blocks/blocks.hpp"
+#include "zlib.h"
 
 class Chunk;
 
@@ -19,7 +24,10 @@ public:
   void savePlayerPos(glm::vec3 pos);
   glm::vec2 loadPlayerRot();
   void savePlayerRot(glm::vec2 rot);
+  void compress();
+  void cleanUp();
 private:
+  void decompress();
   void write(BlockArray * arr, FILE * fp, int depth, size_t * currentDataPos, intvec3 pos);
   BlockArray * read(FILE * fp, int depth, intvec3 pos);
   BlockArray * chunkPositions;
