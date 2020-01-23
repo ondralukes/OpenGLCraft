@@ -24,7 +24,6 @@ SaveManager::SaveManager(const char * savePath){
 }
 
 SaveManager::~SaveManager(){
-  fclose(datafp);
   delete chunkPositions;
 }
 
@@ -300,6 +299,7 @@ SaveManager::decompress(){
 
 void
 SaveManager::cleanUp(){
+  fclose(datafp);
   remove(dataFilename);
   remove(headerFilename);
 }
