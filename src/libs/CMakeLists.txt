@@ -7,6 +7,7 @@ add_definitions(
 )
 
 add_subdirectory (glfw-3.2.1)
+add_subdirectory (zlib)
 
 include_directories(
 	glfw-3.2.1/include/GLFW/

@@ -14,13 +14,14 @@ include_directories(
 	libs/glfw-3.2.1/include/
   libs/glew-2.1.0/include/
 	libs/glm/
-	libs/zlib/
+	libs/zlib
 	.
 )
 
 set(ALL_LIBS
 	${OPENGL_LIBRARY}
 	glfw
+	zlib
 	GLEW_210
 )
 
@@ -38,10 +39,6 @@ file(GLOB ALL_BLOCKS
   "${CMAKE_SOURCE_DIR}/blocks/*"
 )
 
-file(GLOB ZLIB_FILES
-  "${CMAKE_SOURCE_DIR}/libs/zlib/*.c"
-)
-
 add_executable(main
 	main.cpp
   chunk.cpp
@@ -57,7 +54,6 @@ add_executable(main
 	loadTexture.cpp
 	resourceManager.cpp
 	${ALL_BLOCKS}
-	${ZLIB_FILES}
 )
 
 target_link_libraries(main
