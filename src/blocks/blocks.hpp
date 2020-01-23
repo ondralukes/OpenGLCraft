@@ -5,5 +5,6 @@
 #include "block.hpp"
 #include "grass.hpp"
 #include "stone.hpp"
+#include "dirt.hpp"
 
 #endif

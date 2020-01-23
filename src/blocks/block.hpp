@@ -10,7 +10,8 @@ namespace Blocks{
   {
     NONE = 0,
     GRASS = 1,
-    STONE = 2
+    STONE = 2,
+    DIRT = 3
   };
 
   struct block_data {

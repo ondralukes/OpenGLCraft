@@ -44,8 +44,17 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
                 int terrX = x+chx*CHUNK_SIZE - terrStartX*CHUNK_SIZE;
                 int terrY = z+chz*CHUNK_SIZE - terrStartZ*CHUNK_SIZE;
                 int height = map[terrX][terrY];
-                for(int y = -4*CHUNK_SIZE;y<height;y++){
-                  addBlock(intvec3(chunkPos.x*CHUNK_SIZE+x,y,chunkPos.z*CHUNK_SIZE+z), new Blocks::Grass(), false);
+                int dirtHeight = height - (rand()%5+5);
+                for(int y = -4*CHUNK_SIZE;y<=height;y++){
+                  Blocks::Block * bl;
+                  if(y==height){
+                    bl = new Blocks::Grass();
+                  } else if(y>dirtHeight){
+                    bl = new Blocks::Dirt();
+                  } else {
+                    bl = new Blocks::Stone();
+                  }
+                  addBlock(intvec3(chunkPos.x*CHUNK_SIZE+x,y,chunkPos.z*CHUNK_SIZE+z), bl, false);
                 }
               }
             }

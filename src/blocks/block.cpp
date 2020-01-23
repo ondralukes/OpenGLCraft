@@ -18,6 +18,9 @@ Block::decodeBlock(block_data data){
     case STONE:
       bl = (Block *)new Stone();
       break;
+    case DIRT:
+      bl = (Block *)new Dirt();
+      break;
     default:
       bl = NULL;
       break;
