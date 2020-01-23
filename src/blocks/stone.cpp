@@ -2,7 +2,7 @@
 
 using namespace Blocks;
 
-Stone::Stone() : Block("textures/stone.bmp"){
+Stone::Stone() : Block("textures/stone.dds"){
 }
 
 block_data

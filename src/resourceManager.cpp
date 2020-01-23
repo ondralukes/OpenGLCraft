@@ -12,7 +12,7 @@ ResourceManager::getTexture(const char * path){
   }
   texture_t tex;
   tex.name = path;
-  tex.id = loadBmp(path);
+  tex.id = loadDDS(path);
   ResourceManager::textures.push_back(tex);
   return tex.id;
 }

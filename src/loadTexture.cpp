@@ -90,7 +90,7 @@ GLuint loadDDS(const char * imagepath){
 	/* try to open the file */
 	fp = fopen(imagepath, "rb");
 	if (fp == NULL){
-		printf("%s could not be opened. Are you in the right directory ? Don't forget to read the FAQ !\n", imagepath); getchar();
+		printf("[Texture Loader] %s could not be opened.\n", imagepath); getchar();
 		return 0;
 	}
 
@@ -161,11 +161,20 @@ GLuint loadDDS(const char * imagepath){
 		width  /= 2;
 		height /= 2;
 
-		// Deal with Non-Power-Of-Two textures. This code is not included in the webpage to reduce clutter.
+		// Deal with Non-Power-Of-Two textures.
 		if(width < 1) width = 1;
 		if(height < 1) height = 1;
 
 	}
+	float an = 0.0f;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &an);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, an);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	free(buffer);
 

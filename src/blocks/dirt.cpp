@@ -2,7 +2,7 @@
 
 using namespace Blocks;
 
-Dirt::Dirt() : Block("textures/dirt.bmp"){
+Dirt::Dirt() : Block("textures/dirt.dds"){
 }
 
 block_data

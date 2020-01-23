@@ -2,7 +2,7 @@
 
 using namespace Blocks;
 
-Grass::Grass() : Block("textures/grass.bmp"){
+Grass::Grass() : Block("textures/grass.dds"){
 }
 
 block_data

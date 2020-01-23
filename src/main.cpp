@@ -18,6 +18,7 @@
 #include "loadShaders.hpp"
 #include "worldGenerator.hpp"
 #include "text.hpp"
+#include "gui/gui.hpp"
 #include "blockUtils.hpp"
 #include "ray.hpp"
 
@@ -75,6 +76,7 @@ int main(){
   saveManager->loadHeader();
   TextManager * text = new TextManager();
   text->init("textures/font.dds");
+  GUI * gui = new GUI(mvpID, wWidth, wHeight);
 
   glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_FALSE);
 
@@ -276,20 +278,21 @@ int main(){
 
       start = glfwGetTime();
       drawChunks(projection,view,chunkPos);
+      gui->draw();
       end = glfwGetTime();
       drawTime = end - start;
 
       char textMsg[256];
       sprintf(textMsg,"fps :%.2f\n",1.0f/deltaTime);
-      text->drawText(textMsg,glm::vec2(0,0),28.0f);
+      text->drawText(textMsg,glm::vec2(0,wHeight-28.0f),28.0f);
       sprintf(textMsg,"gen: %.2f drw: %.2f\n",genTime*1000,drawTime*1000);
-      text->drawText(textMsg,glm::vec2(0,28.0f),28.0f);
+      text->drawText(textMsg,glm::vec2(0,wHeight-56.0f),28.0f);
       sprintf(textMsg,"pos: [%.2f;%.2f;%.2f]\n",camPos.x,camPos.y,camPos.z,yVelocity);
-      text->drawText(textMsg,glm::vec2(0,56.0f),28.0f);
+      text->drawText(textMsg,glm::vec2(0,wHeight-84.0f),28.0f);
       sprintf(textMsg,"blPos: [%d;%d;%d]\n",blockPos.x,blockPos.y,blockPos.z);
-      text->drawText(textMsg,glm::vec2(0,84.0f),28.0f);
+      text->drawText(textMsg,glm::vec2(0,wHeight-112.0f),28.0f);
       sprintf(textMsg,"yVel %.2f\n",yVelocity);
-      text->drawText(textMsg,glm::vec2(0,112.0f),28.0f);
+      text->drawText(textMsg,glm::vec2(0,wHeight-140.0f),28.0f);
       // Swap buffers
       glfwSwapBuffers(window);
       glfwPollEvents();
@@ -304,6 +307,7 @@ int main(){
     saveManager->cleanUp();
 
     delete saveManager;
+    delete gui;
 
     glDeleteProgram(shaderProgramID);
     glDeleteVertexArrays(1, &VertexArrayID);

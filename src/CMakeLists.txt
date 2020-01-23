@@ -48,6 +48,8 @@ add_executable(main
 	blockArray.cpp
 	blockUtils.cpp
 	ray.cpp
+	gui/gui.cpp
+	gui/guiImage.cpp
 	text.cpp
 	saveManager.cpp
 	worldGenerator.cpp
