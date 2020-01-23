@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
+#if defined(WIN32)
+  #include <direct.h>
+#endif
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -60,7 +64,12 @@ int main(){
   GLuint mvpID = glGetUniformLocation(shaderProgramID,"mvp");
   Chunk::mvpID = mvpID;
 
-  mkdir("saves", 0777);
+  #if defined(WIN32)
+    _mkdir("saves");
+  #else
+    mkdir("saves",0777);
+  #endif
+
   SaveManager * saveManager = new SaveManager("saves/default");
   Chunk::saveManager = saveManager;
   saveManager->loadHeader();
