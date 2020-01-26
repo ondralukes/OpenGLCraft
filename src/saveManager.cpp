@@ -1,6 +1,6 @@
 #include "saveManager.hpp"
 
-SaveManager::SaveManager(const char * savePath){
+SaveManager::SaveManager(const char * savePath, GLuint mvpid){
   strcpy(headerFilename,savePath);
   strcat(headerFilename,".header");
   strcpy(dataFilename,savePath);
@@ -21,6 +21,8 @@ SaveManager::SaveManager(const char * savePath){
   } else {
     newFile = true;
   }
+
+  mvpID = mvpid;
 }
 
 SaveManager::~SaveManager(){
@@ -197,7 +199,12 @@ SaveManager::loadChunk(intvec3 pos, Chunk * ch){
     fread(buffer,sizeof(Blocks::block_data),CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE,datafp);
     int x = 0,y = 0,z=0;
     for(int i =0;i<CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE;i++){
-      ch->blocks[x][y][z] = Blocks::Block::decodeBlock(buffer[i]);
+      intvec3 blockPos(
+        ch->pos.x*CHUNK_SIZE+x,
+        ch->pos.y*CHUNK_SIZE+y,
+        ch->pos.z*CHUNK_SIZE+z
+      );
+      ch->blocks[x][y][z] = Blocks::Block::decodeBlock(buffer[i], blockPos, mvpID);
       x++;
       if(x==CHUNK_SIZE){
         x=0;

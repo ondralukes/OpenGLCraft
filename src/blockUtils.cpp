@@ -34,6 +34,7 @@ void removeBlock(intvec3 pos, bool update){
     pos.y - chunkPos.y*CHUNK_SIZE,
     pos.z - chunkPos.z*CHUNK_SIZE
   );
+  delete ch->blocks[relPos.x][relPos.y][relPos.z];
   ch->blocks[relPos.x][relPos.y][relPos.z] = NULL;
   if(update)ch->update();
 }

@@ -37,9 +37,9 @@ public:
   Blocks::Block * blocks[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
   size_t posInFile = 0;
   int doDraw = 0;
+  intvec3 pos;
 private:
   void setGlBuffers();
-  intvec3 pos;
   std::vector<chunk_render_side> sidesToRender;
   glm::mat4 modelMatrix;
   GLuint vertexBuffer = -1;

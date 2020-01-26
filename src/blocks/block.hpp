@@ -2,7 +2,9 @@
 #define BLOCK_HPP
 
 #include <GL/glew.h>
+#include <unistd.h>
 #include "resourceManager.hpp"
+#include "structs.hpp"
 
 namespace Blocks{
 #define BLOCK_DATA_SIZE sizeof(block_type) + sizeof(size_t)
@@ -21,8 +23,11 @@ namespace Blocks{
   class Block {
   public:
     Block(const char * texpath);
-    static Block * decodeBlock(block_data data);
+    ~Block();
+    static Block * decodeBlock(block_data data, intvec3 pos, GLuint mvpid);
     GLuint textureID;
+    GLuint mvpID;
+    intvec3 pos;
     virtual block_data getBlockData() = 0;
   };
 }

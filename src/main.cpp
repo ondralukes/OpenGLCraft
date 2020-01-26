@@ -20,6 +20,8 @@
 #include "text.hpp"
 #include "gui/gui.hpp"
 #include "blockUtils.hpp"
+#include "droppedBlock.hpp"
+#include "resourceManager.hpp"
 #include "ray.hpp"
 
 
@@ -71,7 +73,7 @@ int main(){
     mkdir("saves",0777);
   #endif
 
-  SaveManager * saveManager = new SaveManager("saves/default");
+  SaveManager * saveManager = new SaveManager("saves/default", mvpID);
   Chunk::saveManager = saveManager;
   saveManager->loadHeader();
   TextManager * text = new TextManager();
@@ -263,6 +265,7 @@ int main(){
       double start, end;
       start = glfwGetTime();
       WorldGenerator::generate(camPos,deltaTime);
+      DroppedBlock::updateAll(deltaTime, camPos);
       end = glfwGetTime();
       genTime = end - start;
       // Clear the screen
@@ -278,6 +281,7 @@ int main(){
 
       start = glfwGetTime();
       drawChunks(projection,view,chunkPos);
+      DroppedBlock::drawAll(projection,view);
       gui->draw();
       end = glfwGetTime();
       drawTime = end - start;

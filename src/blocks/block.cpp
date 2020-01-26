@@ -1,6 +1,7 @@
 #include "block.hpp"
 
 #include "blocks.hpp"
+#include "droppedBlock.hpp"
 
 using namespace Blocks;
 
@@ -8,8 +9,19 @@ Block::Block(const char * texpath){
   textureID = ResourceManager::getTexture(texpath);
 }
 
+Block::~Block(){
+  glm::vec3 p(pos.x,pos.y,pos.z);
+  DroppedBlock * drop = new DroppedBlock(mvpID, textureID, p);
+  glm::vec3 vel(
+    ((rand()%40) - 20)* 0.01f,
+    1.5f,
+    ((rand()%40) - 20)* 0.01f
+  );
+  drop->setVelocity(vel);
+}
+
 Block *
-Block::decodeBlock(block_data data){
+Block::decodeBlock(block_data data, intvec3 pos, GLuint mvpid){
   Block * bl;
   switch (data.type) {
     case GRASS:
@@ -24,6 +36,10 @@ Block::decodeBlock(block_data data){
     default:
       bl = NULL;
       break;
+  }
+  if(bl!=NULL){
+    bl->pos = pos;
+    bl->mvpID = mvpid;
   }
   return bl;
 }

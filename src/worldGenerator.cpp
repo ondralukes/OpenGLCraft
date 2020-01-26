@@ -54,6 +54,7 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
                   } else {
                     bl = new Blocks::Stone();
                   }
+                  bl->pos = intvec3(chunkPos.x*CHUNK_SIZE+x,y,chunkPos.z*CHUNK_SIZE+z);
                   addBlock(intvec3(chunkPos.x*CHUNK_SIZE+x,y,chunkPos.z*CHUNK_SIZE+z), bl, false);
                 }
               }

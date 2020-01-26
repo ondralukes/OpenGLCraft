@@ -14,7 +14,7 @@ class Chunk;
 
 class SaveManager{
 public:
-  SaveManager(const char * savePath);
+  SaveManager(const char * savePath, GLuint mvpid);
   ~SaveManager();
   void saveHeader(BlockArray * chunks);
   void loadHeader();
@@ -30,6 +30,8 @@ private:
   void decompress();
   void write(BlockArray * arr, FILE * fp, int depth, size_t * currentDataPos, intvec3 pos);
   BlockArray * read(FILE * fp, int depth, intvec3 pos);
+
+  GLuint mvpID;
   BlockArray * chunkPositions;
   char headerFilename[1024];
   char dataFilename[1024];
