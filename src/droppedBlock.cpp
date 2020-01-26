@@ -137,8 +137,9 @@ DroppedBlock::update(float deltaTime, glm::vec3 playerPos){
       delete this;
       return;
     }
+  } else {
+    velocity.y -= deltaTime*9.81f;
   }
-  velocity.y -= deltaTime*9.81f;
   glm::vec3 pos = modelMatrix[3];
   intvec3 blockPos(
     round(pos.x),
