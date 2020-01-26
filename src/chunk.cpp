@@ -22,7 +22,7 @@ Chunk::getChunk(intvec3 pos){
 }
 
 void
-Chunk::setChunk(intvec3 pos, Chunk * ch){
+Chunk::setChunk(intvec3 pos, Chunk * ch, bool saveHeaders){
   BlockArray * yz = (BlockArray *)(chunks->get((long)pos.x));
   if(yz == NULL){
     chunks->set((long)pos.x,(void *)new BlockArray());
@@ -34,7 +34,7 @@ Chunk::setChunk(intvec3 pos, Chunk * ch){
     z = (BlockArray *)(yz->get((long)pos.y));
   }
   z->set((long)pos.z,ch);
-  saveManager->saveHeader(chunks);
+  if(saveHeaders) saveManager->saveHeader(chunks);
 }
 
 Chunk::Chunk(intvec3 p){
@@ -48,6 +48,11 @@ Chunk::Chunk(intvec3 p){
     }
   }
   saveManager->loadChunk(pos,this);
+}
+
+void
+Chunk::saveHeader(){
+  saveManager->saveHeader(Chunk::chunks);
 }
 
 void

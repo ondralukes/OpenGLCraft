@@ -47,7 +47,7 @@ void addBlock(intvec3 pos, Blocks::Block * bl, bool update){
   );
   Chunk * ch = Chunk::getChunk(chunkPos);
   if(ch == NULL){
-    Chunk::setChunk(chunkPos, new Chunk(chunkPos));
+    Chunk::setChunk(chunkPos, new Chunk(chunkPos), update);
     ch = Chunk::getChunk(chunkPos);
   }
   intvec3 relPos(

@@ -18,7 +18,7 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
       int terrStartZ = floor(pos.z/CHUNK_SIZE/4)*4+tz*4;
       Chunk * ch = Chunk::getChunk(terrainPartPos);
       if(ch!=NULL)continue;
-      Chunk::setChunk(terrainPartPos,new Chunk(terrainPartPos));
+      Chunk::setChunk(terrainPartPos,new Chunk(terrainPartPos), false);
       ch = Chunk::getChunk(terrainPartPos);
       bool isLoaded = ch->isLoaded;
       int ** map = new int*[CHUNK_SIZE*4];
@@ -36,7 +36,7 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
             -1,
             chz
           );
-          if(Chunk::getChunk(chunkPos) == NULL) Chunk::setChunk(chunkPos,new Chunk(chunkPos));
+          if(Chunk::getChunk(chunkPos) == NULL) Chunk::setChunk(chunkPos,new Chunk(chunkPos), false);
           ch = Chunk::getChunk(chunkPos);
           if(!isLoaded){
             for(int x = 0;x<CHUNK_SIZE;x++){
@@ -59,6 +59,7 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
                 }
               }
             }
+            Chunk::saveHeader();
             for(int y = -8;y<8;y++){
               ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
               if(ch==NULL){

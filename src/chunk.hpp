@@ -23,8 +23,9 @@ public:
   static GLuint mvpID;
   static SaveManager * saveManager;
   static BlockArray * chunks;
+  static void saveHeader();
   static Chunk * getChunk(intvec3 pos);
-  static void setChunk(intvec3 pos, Chunk * ch);
+  static void setChunk(intvec3 pos, Chunk * ch, bool saveHeaders = true);
 
   Chunk(intvec3 pos);
   void addBlock(intvec3 pos, Blocks::Block * bl);
