@@ -31,6 +31,7 @@ const float camHeight = 1.7f;
 const float playerHeight = 1.75f;
 
 void drawChunks(glm::mat4 projection, glm::mat4 view, intvec3 chunkPos);
+void scrollCallback(GLFWwindow* window, double x, double y);
 
 int main(){
   glewExperimental = true; // Needed for core profile
@@ -68,9 +69,9 @@ int main(){
   Chunk::mvpID = mvpID;
 
   #if defined(WIN32)
-    _mkdir("saves");
+  _mkdir("saves");
   #else
-    mkdir("saves",0777);
+  mkdir("saves",0777);
   #endif
 
   SaveManager * saveManager = new SaveManager("saves/default", mvpID);
@@ -83,6 +84,7 @@ int main(){
   GUI::init(mvpID, wWidth, wHeight);
 
   glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_FALSE);
+  glfwSetScrollCallback(window, scrollCallback);
 
   glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
   glEnable(GL_DEPTH_TEST);
@@ -185,7 +187,14 @@ int main(){
       intvec3 placePos;
       if(getLookingAt(camPos,camDirection,NULL,&placePos)){
         if(placePos.x != blockPos.x || placePos.z != blockPos.z ||(placePos.y != blockPos.y+1 && placePos.y != blockPos.y+2)){
-          addBlock(placePos, new Blocks::Stone());
+          Blocks::block_type blType = Inventory::getSelectedBlock();
+          if(blType != Blocks::NONE){
+            Blocks::block_data blData;
+            blData.type = blType;
+            Blocks::Block * block = Blocks::Block::decodeBlock(blData, placePos, mvpID);
+            addBlock(placePos, block);
+            Inventory::remove(GUI::selectedItemIndex);
+          }
         }
       }
       rMousePressed = true;
@@ -342,3 +351,8 @@ int main(){
       }
     }
   }
+
+void scrollCallback(GLFWwindow* window, double x, double y){
+  GUI::selectedItemIndex += y;
+  GUI::selectedItemIndex = (GUI::selectedItemIndex + 8)%8;
+}

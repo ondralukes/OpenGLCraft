@@ -14,7 +14,8 @@ typedef struct inventory_item {
 class Inventory {
 public:
   static void add(Blocks::block_type type, int count = 1);
-  static void remove(Blocks::block_type type, int count = 1);
+  static void remove(int index, int count = 1);
+  static Blocks::block_type getSelectedBlock();
   static inventory_item inventory[8];
   static SaveManager * saveManager;
 };

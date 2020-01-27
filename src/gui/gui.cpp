@@ -5,9 +5,11 @@ int GUI::wHeight;
 GLuint GUI::vertexBuffer;
 GLuint GUI::uvBuffer;
 GLuint GUI::textureID;
+GLuint GUI::selectedTextureID;
 GLuint GUI::mvpID;
 GUIImage * GUI::blocks[8];
 TextManager * GUI::textManager;
+int GUI::selectedItemIndex = 0;
 
 void
 GUI::init(GLuint mvpid, int ww, int wh){
@@ -25,6 +27,7 @@ GUI::init(GLuint mvpid, int ww, int wh){
   glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
   glBufferData(GL_ARRAY_BUFFER, sizeof(UVs), UVs, GL_STATIC_DRAW);
   textureID = ResourceManager::getTexture("textures/itembar.dds");
+  selectedTextureID = ResourceManager::getTexture("textures/itembarselected.dds");
   mvpID = mvpid;
   wWidth = ww;
   wHeight = wh;
@@ -65,9 +68,6 @@ GUI::draw(){
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvp[0][0]);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, textureID);
-  glUniform1i(textureID, 0);
 
   float bottomMargin = 0.05f;
   float totalWidth = 1.6f;
@@ -86,6 +86,16 @@ GUI::draw(){
        xEnd, yStart, 0.0f,
        xEnd, yEnd, 0.0f,
     };
+
+    glActiveTexture(GL_TEXTURE0);
+    if(i == selectedItemIndex){
+      glBindTexture(GL_TEXTURE_2D, selectedTextureID);
+      glUniform1i(selectedTextureID, 0);
+    } else {
+      glBindTexture(GL_TEXTURE_2D, textureID);
+      glUniform1i(textureID, 0);
+    }
+
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, 6*sizeof(glm::vec3), vertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);

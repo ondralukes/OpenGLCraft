@@ -22,3 +22,18 @@ Inventory::add(Blocks::block_type type, int count){
   GUI::refresh();
   saveManager->saveInventory();
 }
+
+void
+Inventory::remove(int index, int count){
+  inventory[index].count -= count;
+  if(inventory[index].count <= 0){
+    inventory[index].type = Blocks::NONE;
+    inventory[index].count = 0;
+  }
+  GUI::refresh();
+}
+
+Blocks::block_type
+Inventory::getSelectedBlock(){
+  return inventory[GUI::selectedItemIndex].type;
+}

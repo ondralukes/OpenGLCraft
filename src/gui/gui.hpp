@@ -15,12 +15,14 @@ public:
   static void init(GLuint mvpid, int ww, int wh);
   static void draw();
   static void refresh();
+  static int selectedItemIndex;
 private:
   static int wWidth;
   static int wHeight;
   static GLuint vertexBuffer;
   static GLuint uvBuffer;
   static GLuint textureID;
+  static GLuint selectedTextureID;
   static GLuint mvpID;
   static GUIImage * blocks[8];
   static TextManager * textManager;
