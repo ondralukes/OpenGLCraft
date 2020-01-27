@@ -3,6 +3,7 @@
 using namespace Blocks;
 
 Stone::Stone() : Block("textures/stone.dds"){
+  type = STONE;
 }
 
 block_data

@@ -51,6 +51,7 @@ add_executable(main
 	gui/gui.cpp
 	gui/guiImage.cpp
 	text.cpp
+	inventory.cpp
 	droppedBlock.cpp
 	saveManager.cpp
 	worldGenerator.cpp

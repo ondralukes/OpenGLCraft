@@ -2,13 +2,18 @@
 #define SAVE_MANAGER_HPP
 
 #include <glm/glm.hpp>
-#include "blockArray.hpp"
-#include "chunk.hpp"
 #include <string.h>
 #include <fstream>
+
+#include "zlib.h"
+
+#include "inventory.hpp"
+#include "blockArray.hpp"
+#include "chunk.hpp"
 #include "chunk.hpp"
 #include "blocks/blocks.hpp"
-#include "zlib.h"
+
+
 
 class Chunk;
 
@@ -24,6 +29,8 @@ public:
   void savePlayerPos(glm::vec3 pos);
   glm::vec2 loadPlayerRot();
   void savePlayerRot(glm::vec2 rot);
+  void saveInventory();
+  void loadInventory();
   void compress();
   void cleanUp();
 private:
@@ -37,8 +44,7 @@ private:
   char dataFilename[1024];
   bool newFile = false;
 
-  //Leave space for player position and rotation
-  size_t dataFilePos = sizeof(glm::vec3) + sizeof(glm::vec2);
+  size_t dataFilePos;
   FILE * datafp;
 };
 #endif

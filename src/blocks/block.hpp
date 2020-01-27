@@ -24,9 +24,11 @@ namespace Blocks{
     Block(const char * texpath);
     ~Block();
     static Block * decodeBlock(block_data data, intvec3 pos, GLuint mvpid);
+    static GLuint getTextureFor(block_type type);
     GLuint textureID;
     GLuint mvpID;
     intvec3 pos;
+    block_type type;
     virtual block_data getBlockData() = 0;
   };
 }

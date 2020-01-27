@@ -1,3 +1,6 @@
+#ifndef TEXT_HPP
+#define TEXT_HPP
+
 #include <vector>
 #include <stdio.h>
 #include <string.h>
@@ -27,3 +30,5 @@ class TextManager {
     GLuint uniformID;
     textchar_t textChars[128];
 };
+
+#endif

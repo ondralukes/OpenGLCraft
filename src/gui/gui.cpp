@@ -1,6 +1,16 @@
 #include "gui.hpp"
 
-GUI::GUI(GLuint mvpid, int ww, int wh){
+int GUI::wWidth;
+int GUI::wHeight;
+GLuint GUI::vertexBuffer;
+GLuint GUI::uvBuffer;
+GLuint GUI::textureID;
+GLuint GUI::mvpID;
+GUIImage * GUI::blocks[8];
+TextManager * GUI::textManager;
+
+void
+GUI::init(GLuint mvpid, int ww, int wh){
   static const float UVs[]{
     0.0f, 1.0f,
     1.0f, 0.0f,
@@ -18,7 +28,13 @@ GUI::GUI(GLuint mvpid, int ww, int wh){
   mvpID = mvpid;
   wWidth = ww;
   wHeight = wh;
+  textManager = new TextManager();
+  textManager->init("textures/font.dds");
+  refresh();
+}
 
+void
+GUI::refresh(){
   float bottomMargin = 0.05f;
   float totalWidth = 1.6f;
   float cellWidth = totalWidth/8.0f;
@@ -32,10 +48,16 @@ GUI::GUI(GLuint mvpid, int ww, int wh){
     xEnd -= cellWidth *0.2f;
     yStart += cellHeight *0.2f;
     yEnd -= cellHeight *0.2f;
-    blocks[i] = new GUIImage(mvpID, ResourceManager::getTexture("textures/grass.dds"),glm::vec4(xStart,yStart,xEnd,yEnd));
+    Blocks::block_type blockType = Inventory::inventory[i].type;
+    if(blockType != Blocks::NONE){
+      GLuint texture = Blocks::Block::getTextureFor(blockType);
+      blocks[i] = new GUIImage(mvpID, texture, glm::vec4(xStart,yStart,xEnd,yEnd));
+    } else {
+      if(blocks[i] != NULL) delete blocks[i];
+      blocks[i] = NULL;
+    }
   }
 }
-
 void
 GUI::draw(){
   glm::mat4 mvp = glm::mat4(1.0f);
@@ -96,8 +118,18 @@ GUI::draw(){
   }
 
   for(int i =0;i<8;i++){
-    blocks[i]->draw();
+    if(blocks[i] != NULL) blocks[i]->draw();
   }
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
+
+  char text[32];
+  for(int i =0;i<8;i++){
+    float xStart = -0.75f+i*0.2f;
+    float yStart = -0.9f + bottomMargin;
+    if(Inventory::inventory[i].type != Blocks::NONE){
+      sprintf(text, "%d",Inventory::inventory[i].count);
+      textManager->drawText(text, glm::vec2(xStart*640+640, yStart*360+360), 28.0f);
+    }
+  }
 }

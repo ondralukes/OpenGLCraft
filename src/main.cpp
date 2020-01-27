@@ -76,9 +76,11 @@ int main(){
   SaveManager * saveManager = new SaveManager("saves/default", mvpID);
   Chunk::saveManager = saveManager;
   saveManager->loadHeader();
+  saveManager->loadInventory();
+  Inventory::saveManager = saveManager;
   TextManager * text = new TextManager();
   text->init("textures/font.dds");
-  GUI * gui = new GUI(mvpID, wWidth, wHeight);
+  GUI::init(mvpID, wWidth, wHeight);
 
   glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_FALSE);
 
@@ -282,7 +284,7 @@ int main(){
       start = glfwGetTime();
       drawChunks(projection,view,chunkPos);
       DroppedBlock::drawAll(projection,view);
-      gui->draw();
+      GUI::draw();
       end = glfwGetTime();
       drawTime = end - start;
 
@@ -311,7 +313,6 @@ int main(){
     saveManager->cleanUp();
 
     delete saveManager;
-    delete gui;
 
     glDeleteProgram(shaderProgramID);
     glDeleteVertexArrays(1, &VertexArrayID);

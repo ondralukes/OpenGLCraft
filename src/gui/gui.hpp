@@ -6,18 +6,23 @@
 
 #include "resourceManager.hpp"
 #include "guiImage.hpp"
+#include "blocks/block.hpp"
+#include "inventory.hpp"
+#include "text.hpp"
 
 class GUI{
 public:
-  GUI(GLuint mvpid, int ww, int wh);
-  void draw();
+  static void init(GLuint mvpid, int ww, int wh);
+  static void draw();
+  static void refresh();
 private:
-  int wWidth;
-  int wHeight;
-  GLuint vertexBuffer;
-  GLuint uvBuffer;
-  GLuint textureID;
-  GLuint mvpID;
-  GUIImage * blocks[8];
+  static int wWidth;
+  static int wHeight;
+  static GLuint vertexBuffer;
+  static GLuint uvBuffer;
+  static GLuint textureID;
+  static GLuint mvpID;
+  static GUIImage * blocks[8];
+  static TextManager * textManager;
 };
 #endif

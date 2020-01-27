@@ -3,6 +3,7 @@
 using namespace Blocks;
 
 Grass::Grass() : Block("textures/grass.dds"){
+  type = GRASS;
 }
 
 block_data

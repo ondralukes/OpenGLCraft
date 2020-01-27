@@ -11,7 +11,7 @@ Block::Block(const char * texpath){
 
 Block::~Block(){
   glm::vec3 p(pos.x,pos.y,pos.z);
-  DroppedBlock * drop = new DroppedBlock(mvpID, textureID, p);
+  DroppedBlock * drop = new DroppedBlock(mvpID, type, p);
   glm::vec3 vel(
     ((rand()%40) - 20)* 0.01f,
     1.5f,
@@ -42,4 +42,18 @@ Block::decodeBlock(block_data data, intvec3 pos, GLuint mvpid){
     bl->mvpID = mvpid;
   }
   return bl;
+}
+
+GLuint
+Block::getTextureFor(block_type type){
+  if(type == GRASS){
+    return ResourceManager::getTexture("textures/grass.dds");
+  }
+  if(type == STONE){
+    return ResourceManager::getTexture("textures/stone.dds");
+  }
+  if(type == DIRT){
+    return ResourceManager::getTexture("textures/dirt.dds");
+  }
+  printf("Blek\n");
 }

@@ -10,8 +10,8 @@ out vec2 uv;
 void main(){
 
 	// Output position of the vertex, in clip space
-	// map [0..800][0..600] to [-1..1][-1..1]
-	vec2 pos = screenPos - vec2(640,360); // [0..800][0..600] -> [-400..400][-300..300]
+	// map [0..1280][0..720] to [-1..1][-1..1]
+	vec2 pos = screenPos - vec2(640,360);
 	pos /= vec2(640,360);
 	gl_Position =  vec4(pos,0,1);
 
