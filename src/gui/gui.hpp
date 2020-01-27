@@ -16,6 +16,7 @@ public:
   static void draw();
   static void refresh();
   static int selectedItemIndex;
+  static void dispose();
 private:
   static int wWidth;
   static int wHeight;
@@ -25,6 +26,7 @@ private:
   static GLuint selectedTextureID;
   static GLuint mvpID;
   static GUIImage * blocks[8];
+  static GUIImage * crosshair;
   static TextManager * textManager;
 };
 #endif

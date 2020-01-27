@@ -4,7 +4,7 @@ std::vector<texture_t> ResourceManager::textures;
 std::vector<obj_t> ResourceManager::objs;
 
 GLuint
-ResourceManager::getTexture(const char * path){
+ResourceManager::getTexture(const char * path, bool filtering){
   for(int i =0;i<ResourceManager::textures.size();i++){
     if(strcmp(ResourceManager::textures[i].name,path)==0){
       return ResourceManager::textures[i].id;
@@ -12,7 +12,7 @@ ResourceManager::getTexture(const char * path){
   }
   texture_t tex;
   tex.name = path;
-  tex.id = loadDDS(path);
+  tex.id = loadDDS(path, filtering);
   ResourceManager::textures.push_back(tex);
   return tex.id;
 }

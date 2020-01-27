@@ -84,6 +84,7 @@ int main(){
   GUI::init(mvpID, wWidth, wHeight);
 
   glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_FALSE);
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
   glfwSetScrollCallback(window, scrollCallback);
 
   glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
@@ -322,6 +323,7 @@ int main(){
     saveManager->cleanUp();
 
     delete saveManager;
+    GUI::dispose();
 
     glDeleteProgram(shaderProgramID);
     glDeleteVertexArrays(1, &VertexArrayID);

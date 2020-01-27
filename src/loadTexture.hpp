@@ -5,4 +5,4 @@
 #include <GL/glew.h>
 
 GLuint loadBmp(const char * path);
-GLuint loadDDS(const char * path);
+GLuint loadDDS(const char * path, bool filtering = true);

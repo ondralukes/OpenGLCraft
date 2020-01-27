@@ -22,7 +22,7 @@ struct obj_t {
 
 class ResourceManager{
   public:
-    static GLuint getTexture(const char * path);
+    static GLuint getTexture(const char * path, bool filtering = true);
     static std::vector<texture_t> textures;
     static std::vector<glm::vec3> * getObjVertices(const char * path);
     static std::vector<glm::vec2> * getObjUVs(const char * path);

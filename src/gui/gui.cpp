@@ -8,6 +8,7 @@ GLuint GUI::textureID;
 GLuint GUI::selectedTextureID;
 GLuint GUI::mvpID;
 GUIImage * GUI::blocks[8];
+GUIImage * GUI::crosshair;
 TextManager * GUI::textManager;
 int GUI::selectedItemIndex = 0;
 
@@ -33,6 +34,11 @@ GUI::init(GLuint mvpid, int ww, int wh){
   wHeight = wh;
   textManager = new TextManager();
   textManager->init("textures/font.dds");
+  crosshair = new GUIImage(
+    mvpID,
+    ResourceManager::getTexture("textures/crosshair.dds", false),
+    glm::vec4(620, 340, 660, 380)
+  );
   refresh();
 }
 
@@ -60,6 +66,16 @@ GUI::refresh(){
       blocks[i] = NULL;
     }
   }
+}
+
+void
+GUI::dispose(){
+  for(int i =0;i<8;i++){
+    delete blocks[i];
+  }
+  delete crosshair;
+  glDeleteBuffers(1, &vertexBuffer);
+  glDeleteBuffers(1, &uvBuffer);
 }
 void
 GUI::draw(){
@@ -142,4 +158,6 @@ GUI::draw(){
       textManager->drawText(text, glm::vec2(xStart*640+640, yStart*360+360), 28.0f);
     }
   }
+
+  crosshair->draw();
 }

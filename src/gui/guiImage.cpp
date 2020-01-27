@@ -35,6 +35,9 @@ GUIImage::GUIImage(GLuint mvpid, GLuint texID, glm::vec4 pos){
 void
 GUIImage::draw(){
   glm::mat4 mvp = glm::mat4(1.0f);
+  
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvp[0][0]);
   glActiveTexture(GL_TEXTURE0);
