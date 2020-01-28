@@ -16,9 +16,11 @@ bool operator!=(const intvec3& lhs, const intvec3& rhs);
 intvec3 operator+(const intvec3& lhs, const intvec3& rhs);
 
 struct chunk_render_side{
-  chunk_render_side(intvec3 _pos, intvec3 _dir, GLuint texID) : pos(_pos), dir(_dir), textureID(texID){};
+  chunk_render_side(intvec3 _pos, intvec3 _dir, GLuint texID, int _damageLevel)
+    : pos(_pos), dir(_dir), textureID(texID), damageLevel(_damageLevel){};
   intvec3 pos;
   intvec3 dir;
   GLuint textureID;
+  int damageLevel = 0;
 };
 #endif

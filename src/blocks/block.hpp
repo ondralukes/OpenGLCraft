@@ -25,8 +25,10 @@ namespace Blocks{
     ~Block();
     static Block * decodeBlock(block_data data, intvec3 pos, GLuint mvpid);
     static GLuint getTextureFor(block_type type);
-    GLuint textureID;
+    GLuint textureID = 100;
     GLuint mvpID;
+    int damageLevel = 0;
+    float hardness;
     intvec3 pos;
     block_type type;
     virtual block_data getBlockData() = 0;

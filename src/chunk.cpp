@@ -139,11 +139,12 @@ Chunk::recalculateSides(){
               }
               if(render){
                 Blocks::Block * bl = blocks[x][y][z];
-                chunk_render_side side(intvec3(x,y,z), dir, bl->textureID);
-                if(textureRenderMap.find(bl->textureID) == textureRenderMap.end()){
-                  textureRenderMap.insert({bl->textureID, std::vector<chunk_render_side>()});
+                chunk_render_side side(intvec3(x,y,z), dir, bl->textureID, bl->damageLevel);
+                int key = bl->damageLevel==0?bl->textureID +9:bl->damageLevel;
+                if(textureRenderMap.find(key) == textureRenderMap.end()){
+                  textureRenderMap.insert({key, std::vector<chunk_render_side>()});
                 }
-                textureRenderMap[bl->textureID].push_back(side);
+                textureRenderMap[key].push_back(side);
               }
             }
           }
@@ -259,7 +260,7 @@ Chunk::setGlBuffers(){
     glm::vec3 vertex = vertices[i];
     glm::vec2 uv = UVs[i];
   }
-  if(vertexBuffer = -1){
+  if(vertexBuffer == -1){
     glGenBuffers(1,&vertexBuffer);
     glGenBuffers(1,&uvBuffer);
    }
@@ -307,19 +308,37 @@ Chunk::draw(glm::mat4 projection, glm::mat4 view){
     (void*)0                          // array buffer offset
   );
   GLuint currentTex = 0;
+  GLuint currentDamageLevel = 0;
   int offset = 0;
   int length = 0;
   for(int i =0;i<sidesToRender.size();i++){
-    if(sidesToRender[i].textureID != currentTex){
+    if(sidesToRender[i].textureID != currentTex || sidesToRender[i].damageLevel != currentDamageLevel){
       if(currentTex != 0){
         glDrawArrays(GL_TRIANGLES, offset, length);
         offset += length;
         length = 0;
       }
+      if(sidesToRender[i].damageLevel > 0){
+        char texPath[128];
+        sprintf(texPath, "textures/damageMasks/%d.dds", sidesToRender[i].damageLevel);
+        GLuint maskTex = ResourceManager::getTexture(texPath);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, maskTex);
+      }
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, sidesToRender[i].textureID);
-      glUniform1i(sidesToRender[i].textureID, 0);
+
+      glUniform1i(3, 0);
+      glUniform1i(4, 1);
+      if(sidesToRender[i].damageLevel > 0){
+        //Turn on mask
+        glUniform1i(5, 1);
+      } else {
+        //Turn off mask
+        glUniform1i(5, 0);
+      }
       currentTex = sidesToRender[i].textureID;
+      currentDamageLevel = sidesToRender[i].damageLevel;
     }
     length += 6;
   }
@@ -328,4 +347,7 @@ Chunk::draw(glm::mat4 projection, glm::mat4 view){
 
   glDisableVertexAttribArray(0);
   glDisableVertexAttribArray(1);
+
+  //Turn off mask
+  glUniform1i(5, 0);
 }

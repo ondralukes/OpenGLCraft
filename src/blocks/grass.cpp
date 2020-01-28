@@ -4,6 +4,7 @@ using namespace Blocks;
 
 Grass::Grass() : Block("textures/grass.dds"){
   type = GRASS;
+  hardness = 0.05f;
 }
 
 block_data

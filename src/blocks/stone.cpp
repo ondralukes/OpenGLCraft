@@ -4,6 +4,7 @@ using namespace Blocks;
 
 Stone::Stone() : Block("textures/stone.dds"){
   type = STONE;
+  hardness = 0.5f;
 }
 
 block_data

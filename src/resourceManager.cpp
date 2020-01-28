@@ -11,7 +11,7 @@ ResourceManager::getTexture(const char * path, bool filtering){
     }
   }
   texture_t tex;
-  tex.name = path;
+  strcpy(tex.name, path);
   tex.id = loadDDS(path, filtering);
   ResourceManager::textures.push_back(tex);
   return tex.id;
@@ -28,7 +28,7 @@ ResourceManager::getObjVertices(const char * path){
   std::vector<glm::vec2> * uvs = new std::vector<glm::vec2>();
   loadObj(path,vertices,uvs);
   obj_t obj;
-  obj.name = path;
+  strcpy(obj.name, path);
   obj.vertices = vertices;
   obj.uvs = uvs;
   ResourceManager::objs.push_back(obj);
@@ -46,7 +46,7 @@ ResourceManager::getObjUVs(const char * path){
   std::vector<glm::vec2> * uvs = new std::vector<glm::vec2>();
   loadObj(path,vertices,uvs);
   obj_t obj;
-  obj.name = path;
+  strcpy(obj.name, path);
   obj.vertices = vertices;
   obj.uvs = uvs;
   ResourceManager::objs.push_back(obj);

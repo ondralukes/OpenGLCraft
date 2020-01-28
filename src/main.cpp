@@ -25,6 +25,8 @@
 #include "resourceManager.hpp"
 #include "ray.hpp"
 
+#include <mcheck.h>
+
 
 const int wWidth = 1280;
 const int wHeight = 720;
@@ -36,6 +38,7 @@ void scrollCallback(GLFWwindow* window, double x, double y);
 void recalcThWork(intvec3 * chunkPos);
 
 int main(){
+  mtrace();
   srand(time(NULL));
   glewExperimental = true; // Needed for core profile
   if( !glfwInit() )
@@ -51,7 +54,7 @@ int main(){
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL
 
   GLFWwindow* window;
-  window = glfwCreateWindow( wWidth, wHeight, "OpenGLCraft", glfwGetPrimaryMonitor(), NULL);
+  window = glfwCreateWindow( wWidth, wHeight, "OpenGLCraft", /*glfwGetPrimaryMonitor()*/NULL, NULL);
   if( window == NULL ){
     fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible.\n" );
     glfwTerminate();
@@ -188,14 +191,27 @@ int main(){
     );
 
     static bool lMousePressed = false;
+    static double lMousePressTime;
+    static bool destroying;
+    static intvec3 lMousePressRemoveBlock;
     int lMouseState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
-    if(lMouseState == GLFW_PRESS&&!lMousePressed){
-      intvec3 removePos;
+    intvec3 removePos;
+    if(lMouseState == GLFW_PRESS){
+      if(!lMousePressed){
+        lMousePressTime = glfwGetTime();
+        destroying = true;
+      }
+
       if(getLookingAt(camPos,camDirection,&removePos)){
-        removeBlock(removePos);
+        if(!lMousePressed) lMousePressRemoveBlock = removePos;
+        if(removePos == lMousePressRemoveBlock){
+          removeBlock(removePos, time-lMousePressTime);
+        }
       }
       lMousePressed = true;
-    } else if(lMouseState == GLFW_RELEASE){
+    }
+    if(lMouseState == GLFW_RELEASE || removePos != lMousePressRemoveBlock){
+      removeBlock(lMousePressRemoveBlock, 0.0f);
       lMousePressed = false;
     }
 

@@ -11,13 +11,13 @@
 
 struct texture_t {
   GLuint id;
-  const char * name;
+  char name[128];
 };
 
 struct obj_t {
   std::vector<glm::vec3> * vertices;
   std::vector<glm::vec2> * uvs;
-  const char * name;
+  char name[128];
 };
 
 class ResourceManager{
