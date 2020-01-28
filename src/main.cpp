@@ -25,8 +25,6 @@
 #include "resourceManager.hpp"
 #include "ray.hpp"
 
-#include <mcheck.h>
-
 
 const int wWidth = 1280;
 const int wHeight = 720;
@@ -38,7 +36,6 @@ void scrollCallback(GLFWwindow* window, double x, double y);
 void recalcThWork(intvec3 * chunkPos);
 
 int main(){
-  mtrace();
   srand(time(NULL));
   glewExperimental = true; // Needed for core profile
   if( !glfwInit() )
