@@ -255,7 +255,7 @@ SaveManager::loadPlayerRot(){
 
 void
 SaveManager::compress(){
-  char buffer[1024*1024];
+  char * buffer = (char *) malloc(sizeof(char)*1024*1024);
 
   char compressedDataFile[1030];
   sprintf(compressedDataFile,"%s.gz", dataFilename);
@@ -278,11 +278,12 @@ SaveManager::compress(){
   }
   fclose(fp);
   gzclose(gzfp);
+  free(buffer);
 }
 
 void
 SaveManager::decompress(){
-  char buffer[1024*1024];
+  char * buffer = (char *) malloc(1024*1024);
 
   char compressedDataFile[1030];
   sprintf(compressedDataFile,"%s.gz", dataFilename);
@@ -305,6 +306,7 @@ SaveManager::decompress(){
   }
   fclose(fp);
   gzclose(gzfp);
+  free(buffer);
 }
 
 void
