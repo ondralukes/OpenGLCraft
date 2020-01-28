@@ -4,8 +4,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <map>
+#include <mutex>
 #include <cstdio>
 #include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
 #include "resourceManager.hpp"
@@ -26,25 +28,28 @@ public:
   static void saveHeader();
   static Chunk * getChunk(intvec3 pos);
   static void setChunk(intvec3 pos, Chunk * ch, bool saveHeaders = true);
-
   Chunk(intvec3 pos);
   void addBlock(intvec3 pos, Blocks::Block * bl);
   void removeBlock(intvec3 pos);
   void draw(glm::mat4 projection, glm::mat4 view);
   void update(bool save = true);
   bool canSeeThrough(intvec3 dir);
-  void recalculateSides();
+  void recalculate();
   bool isLoaded = false;
+  bool wasRecalculated = true;
+  bool shouldRecalculate = true;
   Blocks::Block * blocks[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
   size_t posInFile = 0;
   int doDraw = 0;
   intvec3 pos;
 private:
+  void recalculateSides();
   void setGlBuffers();
   std::vector<chunk_render_side> sidesToRender;
   glm::mat4 modelMatrix;
   GLuint vertexBuffer = -1;
   GLuint uvBuffer = -1;
+  std::mutex mtx;
 
   bool posX = true;
   bool negX = true;

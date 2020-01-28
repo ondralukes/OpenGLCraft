@@ -31,6 +31,7 @@ Inventory::remove(int index, int count){
     inventory[index].count = 0;
   }
   GUI::refresh();
+  saveManager->saveInventory();
 }
 
 Blocks::block_type

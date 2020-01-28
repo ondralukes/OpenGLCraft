@@ -63,7 +63,7 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
             for(int y = -8;y<8;y++){
               ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
               if(ch==NULL){
-                Chunk::setChunk(intvec3(chunkPos.x,y,chunkPos.z), new Chunk(intvec3(chunkPos.x,y,chunkPos.z)));
+                Chunk::setChunk(intvec3(chunkPos.x,y,chunkPos.z), new Chunk(intvec3(chunkPos.x,y,chunkPos.z)), false);
                 ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
               }
               ch->update(true);
@@ -72,7 +72,7 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
             for(int y = -8;y<8;y++){
               ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
               if(ch==NULL){
-                Chunk::setChunk(intvec3(chunkPos.x,y,chunkPos.z), new Chunk(intvec3(chunkPos.x,y,chunkPos.z)));
+                Chunk::setChunk(intvec3(chunkPos.x,y,chunkPos.z), new Chunk(intvec3(chunkPos.x,y,chunkPos.z)), false);
                 ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
               }
               ch->update(false);

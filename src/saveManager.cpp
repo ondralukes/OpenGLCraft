@@ -3,7 +3,7 @@
 SaveManager::SaveManager(const char * savePath, GLuint mvpid){
   //Leave space for player position and rotation and inventory
   dataFilePos = sizeof(glm::vec3) + sizeof(glm::vec2) + sizeof(inventory_item) * 8;
-  
+
   strcpy(headerFilename,savePath);
   strcat(headerFilename,".header");
   strcpy(dataFilename,savePath);
@@ -324,5 +324,5 @@ void
 SaveManager::loadInventory(){
   if(newFile) return;
   fseek(datafp, sizeof(glm::vec3) + sizeof(glm::vec2), SEEK_SET);
-  fread(Inventory::inventory, sizeof(glm::vec2), 1, datafp);
+  fread(Inventory::inventory, sizeof(inventory_item), 8, datafp);
 }

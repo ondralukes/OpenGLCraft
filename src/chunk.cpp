@@ -67,8 +67,15 @@ Chunk::removeBlock(intvec3 pos){
 
 void
 Chunk::update(bool save){
+  shouldRecalculate = true;
+  if(save) {
+    saveManager->saveChunk(this);
+  }
+}
+
+void
+Chunk::recalculate(){
   recalculateSides();
-  setGlBuffers();
 
   //Recalculate adjacent chunks to update doDraw
   for(int d =-1;d<=1;d+=2){
@@ -81,17 +88,17 @@ Chunk::update(bool save){
       Chunk * ch = Chunk::getChunk(pos+dir);
       if(ch != NULL){
         ch->recalculateSides();
+        ch->wasRecalculated = true;
       }
     }
   }
-
-  if(save) {
-    saveManager->saveChunk(this);
-  }
+  shouldRecalculate = false;
+  wasRecalculated = true;
 }
 
 void
 Chunk::recalculateSides(){
+  const std::lock_guard<std::mutex> lock(mtx);
   sidesToRender.clear();
   std::map<GLuint, std::vector<chunk_render_side>> textureRenderMap;
   int posXCount = 0;
@@ -188,9 +195,9 @@ Chunk::canSeeThrough(intvec3 dir){
 void
 Chunk::setGlBuffers(){
   std::vector<glm::vec3> vertices;
-  vertices.reserve(sidesToRender.size()*6);
+  vertices.resize(sidesToRender.size()*6);
   std::vector<glm::vec2> UVs;
-  UVs.reserve(sidesToRender.size()*6);
+  UVs.resize(sidesToRender.size()*6);
   for(int i =0;i<sidesToRender.size();i++){
     chunk_render_side side = sidesToRender[i];
     glm::vec3 pos(
@@ -252,19 +259,24 @@ Chunk::setGlBuffers(){
     glm::vec3 vertex = vertices[i];
     glm::vec2 uv = UVs[i];
   }
-  if(vertexBuffer != -1) glDeleteBuffers(1,&vertexBuffer);
-  if(uvBuffer != -1) glDeleteBuffers(1,&uvBuffer);
-  glGenBuffers(1,&vertexBuffer);
+  if(vertexBuffer = -1){
+    glGenBuffers(1,&vertexBuffer);
+    glGenBuffers(1,&uvBuffer);
+   }
+
   glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
   glBufferData(GL_ARRAY_BUFFER, sidesToRender.size()*6*sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
 
-  glGenBuffers(1,&uvBuffer);
   glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
   glBufferData(GL_ARRAY_BUFFER, sidesToRender.size()*6*sizeof(glm::vec2), &UVs[0], GL_STATIC_DRAW);
 }
 
 void
 Chunk::draw(glm::mat4 projection, glm::mat4 view){
+  const std::lock_guard<std::mutex> lock(mtx);
+  if(wasRecalculated) setGlBuffers();
+  wasRecalculated = false;
+
   glm::mat4 mvp = projection*view*modelMatrix;
   glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvp[0][0]);
 
@@ -311,6 +323,7 @@ Chunk::draw(glm::mat4 projection, glm::mat4 view){
     }
     length += 6;
   }
+
   glDrawArrays(GL_TRIANGLES, offset, length);
 
   glDisableVertexAttribArray(0);

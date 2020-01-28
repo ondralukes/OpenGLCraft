@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <thread>
 
 #if defined(WIN32)
   #include <direct.h>
@@ -30,10 +31,12 @@ const int wHeight = 720;
 const float camHeight = 1.7f;
 const float playerHeight = 1.75f;
 
-void drawChunks(glm::mat4 projection, glm::mat4 view, intvec3 chunkPos);
+int drawChunks(glm::mat4 projection, glm::mat4 view, intvec3 chunkPos);
 void scrollCallback(GLFWwindow* window, double x, double y);
+void recalcThWork(intvec3 * chunkPos);
 
 int main(){
+  srand(time(NULL));
   glewExperimental = true; // Needed for core profile
   if( !glfwInit() )
   {
@@ -99,13 +102,27 @@ int main(){
 
   WorldGenerator::generate(camPos,0.0f);
 
+
   double yVelocity = 0;
   double lastTime = glfwGetTime();
+  double lastStatsTime = 0;
+  double maxDrawTime = 0;
+  double maxGenTime = 0;
+
+  //Pointer for recalculation thread
+  intvec3 * chunkPosPtr = new intvec3(0,0,0);
+  std::thread * th = new std::thread(recalcThWork, chunkPosPtr);
 
   do{
     double time = glfwGetTime();
     float deltaTime =time-lastTime;
     lastTime = time;
+
+    if(time - lastStatsTime > 2.0f){
+      lastStatsTime = time;
+      maxGenTime = 0;
+      maxDrawTime = 0;
+    }
     double mouseX, mouseY;
     glfwGetCursorPos(window, &mouseX, &mouseY);
     glfwSetCursorPos(window, wWidth/2, wHeight/2);
@@ -280,6 +297,7 @@ int main(){
       DroppedBlock::updateAll(deltaTime, camPos);
       end = glfwGetTime();
       genTime = end - start;
+      if(genTime > maxGenTime) maxGenTime = genTime;
       // Clear the screen
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -291,17 +309,20 @@ int main(){
         floor(blockPos.z/CHUNK_SIZE)
       );
 
+      *chunkPosPtr = chunkPos;
+
       start = glfwGetTime();
-      drawChunks(projection,view,chunkPos);
+      int chunksDrawed = drawChunks(projection,view,chunkPos);
       DroppedBlock::drawAll(projection,view);
       GUI::draw();
       end = glfwGetTime();
       drawTime = end - start;
+      if(drawTime > maxDrawTime) maxDrawTime = drawTime;
 
       char textMsg[256];
-      sprintf(textMsg,"fps :%.2f\n",1.0f/deltaTime);
+      sprintf(textMsg,"fps :%.2f drw: %d chunks\n",1.0f/deltaTime, chunksDrawed);
       text->drawText(textMsg,glm::vec2(0,wHeight-28.0f),28.0f);
-      sprintf(textMsg,"gen: %.2f drw: %.2f\n",genTime*1000,drawTime*1000);
+      sprintf(textMsg,"gen: %.2f (%.2f) drw: %.2f (%.2f)\n",genTime*1000, maxGenTime*1000, drawTime*1000, maxDrawTime*1000);
       text->drawText(textMsg,glm::vec2(0,wHeight-56.0f),28.0f);
       sprintf(textMsg,"pos: [%.2f;%.2f;%.2f]\n",camPos.x,camPos.y,camPos.z,yVelocity);
       text->drawText(textMsg,glm::vec2(0,wHeight-84.0f),28.0f);
@@ -318,6 +339,7 @@ int main(){
 
     saveManager->savePlayerPos(camPos);
     saveManager->savePlayerRot(glm::vec2(xAngle, yAngle));
+    saveManager->saveInventory();
 
     saveManager->compress();
     saveManager->cleanUp();
@@ -334,27 +356,52 @@ int main(){
     return 0;
   }
 
-  void drawChunks(glm::mat4 projection, glm::mat4 view, intvec3 chunkPos){
+int drawChunks(glm::mat4 projection, glm::mat4 view, intvec3 chunkPos){
+  int chunksDrawed = 0;
+  for(int x =-8;x<8;x++){
+    for(int y =-4;y<4;y++){
+      for(int z =-8;z<8;z++){
+        intvec3 chP(
+          chunkPos.x + x,
+          chunkPos.y + y,
+          chunkPos.z + z
+        );
+        Chunk * ch = Chunk::getChunk(chP);
+        if(ch != NULL){
+          if(ch->doDraw != 0){
+            ch->draw(projection,view);
+            chunksDrawed++;
+          }
+        }
+      }
+    }
+  }
+  return chunksDrawed;
+}
+
+void scrollCallback(GLFWwindow* window, double x, double y){
+  GUI::selectedItemIndex += y;
+  GUI::selectedItemIndex = (GUI::selectedItemIndex + 8)%8;
+}
+
+void recalcThWork(intvec3 * chunkPos){
+  while(true){
     for(int x =-8;x<8;x++){
       for(int y =-4;y<4;y++){
         for(int z =-8;z<8;z++){
           intvec3 chP(
-            chunkPos.x + x,
-            chunkPos.y + y,
-            chunkPos.z + z
+            chunkPos->x + x,
+            chunkPos->y + y,
+            chunkPos->z + z
           );
           Chunk * ch = Chunk::getChunk(chP);
           if(ch != NULL){
-            if(ch->doDraw != 0){
-              ch->draw(projection,view);
+            if(ch->shouldRecalculate){
+              ch->recalculate();
             }
           }
         }
       }
     }
   }
-
-void scrollCallback(GLFWwindow* window, double x, double y){
-  GUI::selectedItemIndex += y;
-  GUI::selectedItemIndex = (GUI::selectedItemIndex + 8)%8;
 }
