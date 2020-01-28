@@ -46,6 +46,23 @@ int main(){
     fprintf( stderr, "Failed to initialize GLFW\n" );
     return -1;
   }
+
+  printf("Hit ESC to quit game\n");
+  bool useFullscreen;
+
+  char input;
+  while(true){
+    printf("Launch in fullscreen? [y/n]:");
+    input = getchar();
+    if(input == 'Y' || input == 'y'){
+      useFullscreen = true;
+      break;
+    }
+    if(input == 'N' || input == 'n'){
+      useFullscreen = false;
+      break;
+    }
+  }
   glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // We want OpenGL 3.3
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -54,7 +71,7 @@ int main(){
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL
 
   GLFWwindow* window;
-  window = glfwCreateWindow( wWidth, wHeight, "OpenGLCraft", /*glfwGetPrimaryMonitor()*/NULL, NULL);
+  window = glfwCreateWindow( wWidth, wHeight, "OpenGLCraft", useFullscreen?glfwGetPrimaryMonitor():NULL, NULL);
   if( window == NULL ){
     fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible.\n" );
     glfwTerminate();
