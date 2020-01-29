@@ -8,7 +8,6 @@ std::mutex Chunk::stmtx;
 
 Chunk *
 Chunk::getChunk(intvec3 pos){
-  const std::lock_guard<std::mutex> lock(stmtx);
   BlockArray * yz = (BlockArray *)(chunks->get((long)pos.x));
   if(yz == NULL){
     chunks->set((long)pos.x,(void *)new BlockArray());

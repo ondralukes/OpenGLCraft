@@ -117,8 +117,6 @@ int main(){
   glm::vec3 camPos = saveManager->loadPlayerPos();
   glm::vec3 oldCamPos = camPos;
 
-  WorldGenerator::generate(camPos,0.0f);
-
 
   double yVelocity = 0;
   double lastTime = glfwGetTime();
