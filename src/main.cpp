@@ -288,6 +288,13 @@ int main(){
       }
 
 
+      //Update blockPos after movement
+      blockPos = intvec3(
+        round(camPos.x),
+        ceil(camPos.y-camHeight-0.5f),
+        round(camPos.z)
+      );
+
       yVelocity -= deltaTime*9.81f;
       inAir = true;
       if(isBlock(blockPos)){
