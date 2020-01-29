@@ -28,7 +28,7 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
           map[i][j] = 0;
         }
       }
-      if(!isLoaded)  generateTerrain(map,CHUNK_SIZE*4,CHUNK_SIZE*4);
+      if(!isLoaded)  generateTerrain(map,terrStartX, terrStartZ, CHUNK_SIZE*4,CHUNK_SIZE*4);
       for(int chx = terrStartX;chx<terrStartX+4;chx++){
         for(int chz = terrStartZ;chz<terrStartZ+4;chz++){
           intvec3 chunkPos(
@@ -90,7 +90,43 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
 }
 
 void
-WorldGenerator::generateTerrain(int ** map, int xSize, int ySize){
+WorldGenerator::generateTerrain(int ** map, int tx, int tz, int xSize, int ySize){
+  //Generate base
+  int px, nx;
+  bool appendPX = getBorderHeight(tx + xSize, tz, intvec3(0,0,1), ySize, &px);
+  bool appendNX = getBorderHeight(tx - 1, tz, intvec3(0,0,1), ySize, &nx);
+
+  int pz, nz;
+  bool appendPZ = getBorderHeight(tz + ySize, tz, intvec3(1,0,0), xSize, &pz);
+  bool appendNZ = getBorderHeight(tz - 1, tz, intvec3(1,0,0), xSize, &nz);
+
+  if(!appendPX && !appendNX){
+     px = 0;
+     nx = 0;
+   } else if(!appendPX) {
+     px = nx;
+   } else if(!appendNX){
+     nx = px;
+   }
+
+   if(!appendPZ && !appendNZ){
+      pz = 0;
+      nz = 0;
+    } else if(!appendPZ) {
+      pz = nz;
+    } else if(!appendNZ){
+      nz = pz;
+    }
+
+  for(int x = 0;x < xSize;x++){
+    for(int y = 0;y < ySize;y++){
+      int xh = nx+(px - nx)*x/xSize;
+      int zh = nz+(pz - nz)*y/ySize;
+      map[x][y] += (xh+zh)/2;
+    }
+  }
+
+  //Generate peaks
   int peakCount = xSize*ySize/1000;
   float radius = (xSize+ySize)/2.0f;
   for(int i = 0;i<peakCount;i++){
@@ -108,4 +144,31 @@ WorldGenerator::generateTerrain(int ** map, int xSize, int ySize){
       }
     }
   }
+}
+
+bool WorldGenerator::getBorderHeight(int x, int z, intvec3 dir, int length, int * res){
+  bool found = false;
+  int sum = 0;
+  int count = 0;
+  for(int i =0;i<length;i++){
+    int h;
+    if(getHeightAt(x+dir.x*i, z+dir.z*i, &h)){
+      sum+=h;
+      count++;
+      found = true;
+    }
+  }
+  if(!found) return false;
+  if(res != NULL) *res = sum/count;
+  return true;
+}
+
+bool WorldGenerator::getHeightAt(int x, int z, int * res){
+  for(int y = 30;y > -30;y--){
+    if(isBlock(intvec3(x,y,z))){
+      *res = y;
+      return true;
+    }
+  }
+  return false;
 }
