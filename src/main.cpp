@@ -252,7 +252,10 @@ int main(){
     yVelocity -= deltaTime*9.81f;
     inAir = true;
     if(isBlock(blockPos)){
-      if(yVelocity < 0) yVelocity = 0;
+      if(yVelocity < 0){
+        yVelocity = 0;
+        camPos.y = blockPos.y + 0.5f + camHeight;
+      }
       inAir = false;
     }
 
