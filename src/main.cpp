@@ -349,17 +349,39 @@ int main(){
       drawTime = end - start;
       if(drawTime > maxDrawTime) maxDrawTime = drawTime;
 
-      char textMsg[256];
-      sprintf(textMsg,"fps :%.2f drw: %d chunks\n",1.0f/deltaTime, chunksDrawed);
-      text->drawText(textMsg,glm::vec2(0,wHeight-28.0f),28.0f);
-      sprintf(textMsg,"gen: %.2f (%.2f) drw: %.2f (%.2f)\n",genTime*1000, maxGenTime*1000, drawTime*1000, maxDrawTime*1000);
-      text->drawText(textMsg,glm::vec2(0,wHeight-56.0f),28.0f);
-      sprintf(textMsg,"pos: [%.2f;%.2f;%.2f]\n",camPos.x,camPos.y,camPos.z,yVelocity);
-      text->drawText(textMsg,glm::vec2(0,wHeight-84.0f),28.0f);
-      sprintf(textMsg,"blPos: [%d;%d;%d]\n",blockPos.x,blockPos.y,blockPos.z);
-      text->drawText(textMsg,glm::vec2(0,wHeight-112.0f),28.0f);
-      sprintf(textMsg,"yVel %.2f\n",yVelocity);
-      text->drawText(textMsg,glm::vec2(0,wHeight-140.0f),28.0f);
+      static bool showDebug = true;
+      static bool gPressed = false;
+      if(glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS&&!gPressed){
+        showDebug = !showDebug;
+        gPressed = true;
+      } else if(glfwGetKey(window, GLFW_KEY_G) == GLFW_RELEASE){
+        gPressed = false;
+      }
+
+      if(showDebug){
+        static float fontSize = 21.0f;
+        char textMsg[256];
+        sprintf(textMsg,"fps :%.2f drw: %d chunks",1.0f/deltaTime, chunksDrawed);
+        text->drawText(textMsg,glm::vec2(0,wHeight-fontSize),fontSize);
+        sprintf(textMsg,"gen: %.2f (%.2f) drw: %.2f (%.2f)",genTime*1000, maxGenTime*1000, drawTime*1000, maxDrawTime*1000);
+        text->drawText(textMsg,glm::vec2(0,wHeight-2*fontSize), fontSize);
+        sprintf(textMsg,"pos: [%.2f;%.2f;%.2f]",camPos.x,camPos.y,camPos.z,yVelocity);
+        text->drawText(textMsg,glm::vec2(0,wHeight-3*fontSize), fontSize);
+        sprintf(textMsg,"blPos: [%d;%d;%d]",blockPos.x,blockPos.y,blockPos.z);
+        text->drawText(textMsg,glm::vec2(0,wHeight-4*fontSize), fontSize);
+        sprintf(textMsg,"yVel %.2f",yVelocity);
+        text->drawText(textMsg,glm::vec2(0,wHeight-5*fontSize), fontSize);
+        sprintf(textMsg,"gl_vendor: %s", glGetString(GL_VENDOR));
+        text->drawText(textMsg,glm::vec2(0,wHeight-6*fontSize), fontSize);
+        sprintf(textMsg,"gl_renderer: %s", glGetString(GL_RENDERER));
+        text->drawText(textMsg,glm::vec2(0,wHeight-7*fontSize), fontSize);
+        sprintf(textMsg,"gl_version: %s", glGetString(GL_VERSION));
+        text->drawText(textMsg,glm::vec2(0,wHeight-8*fontSize), fontSize);
+        sprintf(textMsg,"glsl_version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+        text->drawText(textMsg,glm::vec2(0,wHeight-9*fontSize), fontSize);
+
+        text->drawText("=== Press [G] to hide ===",glm::vec2(0,wHeight-11*fontSize), fontSize);
+      }
       // Swap buffers
       glfwSwapBuffers(window);
       glfwPollEvents();
