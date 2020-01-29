@@ -6,5 +6,7 @@
 #include "grass.hpp"
 #include "stone.hpp"
 #include "dirt.hpp"
+#include "wood.hpp"
+#include "leaves.hpp"
 
 #endif

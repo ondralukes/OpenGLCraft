@@ -43,6 +43,7 @@ public:
   int doDraw = 0;
   intvec3 pos;
 private:
+  static std::mutex stmtx;
   void recalculateSides();
   void setGlBuffers();
   std::vector<chunk_render_side> sidesToRender;

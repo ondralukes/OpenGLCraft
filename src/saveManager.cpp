@@ -34,6 +34,7 @@ SaveManager::~SaveManager(){
 
 void
 SaveManager::saveHeader(BlockArray * chunks){
+  const std::lock_guard<std::mutex> lock(mtx);
   FILE * fp = fopen(headerFilename,"wb");
   size_t currentDataPos = dataFilePos;
   write(chunks,fp,2,&currentDataPos,intvec3(0,0,0));
@@ -148,6 +149,7 @@ SaveManager::read(FILE * fp, int depth, intvec3 pos){
 
 void
 SaveManager::loadHeader(){
+  const std::lock_guard<std::mutex> lock(mtx);
   FILE * fp = fopen(headerFilename,"rb");
   if(fp==NULL) return;
   chunkPositions = read(fp,2,intvec3(0,0,0));
@@ -156,6 +158,7 @@ SaveManager::loadHeader(){
 
 void
 SaveManager::saveChunk(Chunk * chunk){
+  const std::lock_guard<std::mutex> lock(mtx);
   fseek(datafp, (long)chunk->posInFile, SEEK_SET);
   Blocks::block_data blockBuffer[CHUNK_SIZE*CHUNK_SIZE*CHUNK_SIZE];
   int x = 0,y = 0,z=0;
@@ -182,6 +185,7 @@ SaveManager::saveChunk(Chunk * chunk){
 
 void
 SaveManager::loadChunk(intvec3 pos, Chunk * ch){
+  const std::lock_guard<std::mutex> lock(mtx);
   if(ch == NULL) printf("ERROR");
   BlockArray * yz = (BlockArray *)(chunkPositions->get((long)pos.x));
   if(yz == NULL){
@@ -225,12 +229,14 @@ SaveManager::loadChunk(intvec3 pos, Chunk * ch){
 
 void
 SaveManager::savePlayerPos(glm::vec3 pos){
+  const std::lock_guard<std::mutex> lock(mtx);
   fseek(datafp,0,SEEK_SET);
   fwrite(&pos, sizeof(glm::vec3), 1, datafp);
 }
 
 glm::vec3
 SaveManager::loadPlayerPos(){
+  const std::lock_guard<std::mutex> lock(mtx);
   if(newFile) return glm::vec3(0.0f,100.0f,0.0f);
   glm::vec3 pos;
   fseek(datafp,0,SEEK_SET);
@@ -240,12 +246,14 @@ SaveManager::loadPlayerPos(){
 
 void
 SaveManager::savePlayerRot(glm::vec2 rot){
+  const std::lock_guard<std::mutex> lock(mtx);
   fseek(datafp, sizeof(glm::vec3), SEEK_SET);
   fwrite(&rot, sizeof(glm::vec2), 1, datafp);
 }
 
 glm::vec2
 SaveManager::loadPlayerRot(){
+  const std::lock_guard<std::mutex> lock(mtx);
   if(newFile) return glm::vec2(0.0f,0.0f);
   glm::vec2 rot;
   fseek(datafp, sizeof(glm::vec3), SEEK_SET);
@@ -255,6 +263,7 @@ SaveManager::loadPlayerRot(){
 
 void
 SaveManager::compress(){
+  const std::lock_guard<std::mutex> lock(mtx);
   char * buffer = (char *) malloc(sizeof(char)*1024*1024);
 
   char compressedDataFile[1030];
@@ -283,6 +292,7 @@ SaveManager::compress(){
 
 void
 SaveManager::decompress(){
+  const std::lock_guard<std::mutex> lock(mtx);
   char * buffer = (char *) malloc(1024*1024);
 
   char compressedDataFile[1030];
@@ -318,12 +328,14 @@ SaveManager::cleanUp(){
 
 void
 SaveManager::saveInventory(){
+  const std::lock_guard<std::mutex> lock(mtx);
   fseek(datafp, sizeof(glm::vec3) + sizeof(glm::vec2), SEEK_SET);
   fwrite(Inventory::inventory, sizeof(inventory_item), 8, datafp);
 }
 
 void
 SaveManager::loadInventory(){
+  const std::lock_guard<std::mutex> lock(mtx);
   if(newFile) return;
   fseek(datafp, sizeof(glm::vec3) + sizeof(glm::vec2), SEEK_SET);
   fread(Inventory::inventory, sizeof(inventory_item), 8, datafp);

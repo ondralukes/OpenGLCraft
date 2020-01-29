@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <string.h>
+#include <mutex>
 #include <fstream>
 
 #include "zlib.h"
@@ -46,5 +47,6 @@ private:
 
   size_t dataFilePos;
   FILE * datafp;
+  std::mutex mtx;
 };
 #endif

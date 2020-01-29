@@ -59,6 +59,7 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
                 }
               }
             }
+            placeTrees(chx * CHUNK_SIZE, chz * CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE, 3);
             Chunk::saveHeader();
             for(int y = -8;y<8;y++){
               ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
@@ -171,4 +172,43 @@ bool WorldGenerator::getHeightAt(int x, int z, int * res){
     }
   }
   return false;
+}
+
+void WorldGenerator::placeTrees(int x, int z, int xSize, int zSize, int count){
+  int * xPos = (int *) malloc(sizeof(int) * count);
+  int * zPos = (int *) malloc(sizeof(int) * count);
+  for(int i =0;i<count;i++){
+    xPos[i] = x + rand()%xSize;
+    zPos[i] = z + rand()%zSize;
+  }
+  for(int i =0;i<count;i++){
+    int tx = xPos[i];
+    int tz = zPos[i];
+    int y;
+    if(!getHeightAt(tx, tz, &y))continue;
+    if(getBlock(intvec3(tx,y,tz))->type == Blocks::LEAVES) continue;
+    y++;
+    int h = rand()%7+2;
+    for(int i =0;i<h;i++){
+      intvec3 pos(tx,y+i,tz);
+      Blocks::Block * bl = new Blocks::Wood();
+      bl->pos = pos;
+      addBlock(pos, bl, false);
+    }
+    intvec3 top(tx,y+h,tz);
+    for(int dx = -3;dx < 3; dx++){
+      for(int dy = -3;dy < 3; dy++){
+        for(int dz = -3;dz < 3; dz++){
+          if(dx ==0 && dz == 0 && dy<0) continue;
+          if(sqrt(dx*dx+dy*dy+dz*dz) > 3.0) continue;
+          intvec3 pos = top + intvec3(dx,dy,dz);
+          Blocks::Block * bl = new Blocks::Leaves();
+          bl->pos = pos;
+          addBlock(pos, bl, false);
+        }
+      }
+    }
+  }
+  free(xPos);
+  free(zPos);
 }

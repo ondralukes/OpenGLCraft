@@ -9,6 +9,7 @@ BlockArray::BlockArray(){
 
 void *
 BlockArray::get(long index){
+  const std::lock_guard<std::mutex> lock(mtx);
   if(index >= 0){
     if(index >= positiveArrayLength){
       return NULL;
@@ -26,6 +27,7 @@ BlockArray::get(long index){
 
 void
 BlockArray::set(long index, void * data){
+  const std::lock_guard<std::mutex> lock(mtx);
   if(index >= 0){
     if(index >= positiveArrayLength){
       size_t newLength = (index+1)*15/10;

@@ -33,6 +33,12 @@ Block::decodeBlock(block_data data, intvec3 pos, GLuint mvpid){
     case DIRT:
       bl = (Block *)new Dirt();
       break;
+    case WOOD:
+      bl = (Block *)new Wood();
+      break;
+    case LEAVES:
+      bl = (Block *)new Leaves();
+      break;
     default:
       bl = NULL;
       break;
@@ -55,5 +61,10 @@ Block::getTextureFor(block_type type){
   if(type == DIRT){
     return ResourceManager::getTexture("textures/dirt.dds");
   }
-  printf("Blek\n");
+  if(type == WOOD){
+    return ResourceManager::getTexture("textures/wood.dds");
+  }
+  if(type == LEAVES){
+    return ResourceManager::getTexture("textures/leaves.dds");
+  }
 }

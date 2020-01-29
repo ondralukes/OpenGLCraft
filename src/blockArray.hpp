@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <mutex>
 
 class BlockArray {
 public:
@@ -14,6 +15,7 @@ public:
 private:
   void** positiveArray;
   void** negativeArray;
+  std::mutex mtx;
 };
 
 #endif

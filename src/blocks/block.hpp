@@ -12,7 +12,9 @@ namespace Blocks{
     NONE = 0,
     GRASS = 1,
     STONE = 2,
-    DIRT = 3
+    DIRT = 3,
+    WOOD = 4,
+    LEAVES = 5
   };
 
   struct block_data {
