@@ -39,6 +39,9 @@ public:
   bool wasRecalculated = true;
   bool shouldRecalculate = true;
   Blocks::Block * blocks[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
+
+  //Used only in one chunk per terrain part
+  bool terrainGenerated = false;
   size_t posInFile = 0;
   int doDraw = 0;
   intvec3 pos;

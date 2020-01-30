@@ -17,9 +17,14 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
       int terrStartX = floor(pos.x/CHUNK_SIZE/4)*4+tx*4;
       int terrStartZ = floor(pos.z/CHUNK_SIZE/4)*4+tz*4;
       Chunk * ch = Chunk::getChunk(terrainPartPos);
-      if(ch!=NULL)continue;
-      Chunk::setChunk(terrainPartPos,new Chunk(terrainPartPos), false);
-      ch = Chunk::getChunk(terrainPartPos);
+      if(ch!=NULL){
+        if(ch->terrainGenerated) continue;
+      }
+      if(ch == NULL){
+        Chunk::setChunk(terrainPartPos,new Chunk(terrainPartPos), false);
+        ch = Chunk::getChunk(terrainPartPos);
+      }
+      ch->terrainGenerated = true;
       bool isLoaded = ch->isLoaded;
       int ** map = new int*[CHUNK_SIZE*4];
       for(int i = 0;i<CHUNK_SIZE*4;i++){
