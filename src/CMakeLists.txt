@@ -5,6 +5,12 @@ project(OpenGLCraft)
 
 find_package(OpenGL REQUIRED)
 
+execute_process(COMMAND git describe --tags --abbrev=8 --long --dirty --broken OUTPUT_VARIABLE OGLC_VERSION)
+string(REGEX REPLACE "\n$" "" OGLC_VERSION "${OGLC_VERSION}")
+
+add_compile_definitions(OGLC_VERSION="${OGLC_VERSION}")
+
+
 add_subdirectory (libs)
 
 set(GCC_COVERAGE_COMPILE_FLAGS " -lstdc++fs")
