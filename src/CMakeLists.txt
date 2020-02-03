@@ -56,6 +56,7 @@ add_executable(main
 	ray.cpp
 	gui/gui.cpp
 	gui/guiImage.cpp
+	gui/itemStack.cpp
 	text.cpp
 	inventory.cpp
 	droppedBlock.cpp

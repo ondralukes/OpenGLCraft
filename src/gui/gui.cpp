@@ -7,7 +7,8 @@ GLuint GUI::uvBuffer;
 GLuint GUI::textureID;
 GLuint GUI::selectedTextureID;
 GLuint GUI::mvpID;
-GUIImage * GUI::blocks[8];
+GLuint GUI::shaderID;
+ItemStack * GUI::blocks[8];
 GUIImage * GUI::crosshair;
 TextManager * GUI::textManager;
 int GUI::selectedItemIndex = 0;
@@ -32,11 +33,13 @@ GUI::init(GLuint mvpid, int ww, int wh){
   mvpID = mvpid;
   wWidth = ww;
   wHeight = wh;
+  shaderID =LoadShaders("shaders/gui.vertexshader", "shaders/gui.fragmentshader");
   textManager = new TextManager();
   textManager->init("textures/font.dds");
   crosshair = new GUIImage(
     mvpID,
     ResourceManager::getTexture("textures/crosshair.dds", false),
+    shaderID,
     glm::vec4(620, 340, 660, 380)
   );
   refresh();
@@ -44,15 +47,15 @@ GUI::init(GLuint mvpid, int ww, int wh){
 
 void
 GUI::refresh(){
-  float bottomMargin = 0.05f;
-  float totalWidth = 1.6f;
+  float bottomMargin = 18.0f;
+  float totalWidth = 1024.0f;
   float cellWidth = totalWidth/8.0f;
-  float cellHeight = cellWidth * wWidth / (float)wHeight;
+  float cellHeight = cellWidth;
   for(int i =0;i<8;i++){
-    float xStart = -0.8f+i*0.2f;
-    float xEnd = -0.6f+i*0.2f;
-    float yStart = -1.0f + bottomMargin;
-    float yEnd =  -1.0f + bottomMargin + cellHeight;
+    float xStart = 128.0f+i*128.0f;
+    float xEnd = 256.0f+i*128.0f;
+    float yStart = bottomMargin;
+    float yEnd =  bottomMargin + cellHeight;
     xStart += cellWidth *0.2f;
     xEnd -= cellWidth *0.2f;
     yStart += cellHeight *0.2f;
@@ -60,7 +63,12 @@ GUI::refresh(){
     Blocks::block_type blockType = Inventory::inventory[i].type;
     if(blockType != Blocks::NONE){
       GLuint texture = Blocks::Block::getTextureFor(blockType);
-      blocks[i] = new GUIImage(mvpID, texture, glm::vec4(xStart,yStart,xEnd,yEnd));
+      if(blocks[i] == NULL){
+        blocks[i] = new ItemStack(mvpID, texture, shaderID, glm::vec4(xStart,yStart,xEnd,yEnd), textManager);
+      } else {
+        blocks[i]->setTexture(texture);
+      }
+      blocks[i]->setCount(Inventory::inventory[i].count);
     } else {
       if(blocks[i] != NULL) delete blocks[i];
       blocks[i] = NULL;
@@ -77,23 +85,55 @@ GUI::dispose(){
   glDeleteBuffers(1, &vertexBuffer);
   glDeleteBuffers(1, &uvBuffer);
 }
+
 void
-GUI::draw(){
+GUI::leftMouseButton(glm::vec2 mousePos, bool state){
+  for(int i =0;i<8;i++){
+    if(blocks[i] == NULL) continue;
+    glm::vec4 box = blocks[i]->getPosition();
+    if(mousePos.x > box.x && mousePos.x < box.z &&
+      mousePos.y > box.y && mousePos.y < box.w){
+        blocks[i]->setFollowMouse(state);
+      }
+  }
+}
+
+void
+GUI::leaveGUI(){
+  float bottomMargin = 18.0f;
+  float totalWidth = 1024.0f;
+  float cellWidth = totalWidth/8.0f;
+  float cellHeight = cellWidth;
+  for(int i =0;i<8;i++){
+    float xStart = 128.0f+i*128.0f;
+    float xEnd = 256.0f+i*128.0f;
+    float yStart = bottomMargin;
+    float yEnd =  bottomMargin + cellHeight;
+    xStart += cellWidth *0.2f;
+    xEnd -= cellWidth *0.2f;
+    yStart += cellHeight *0.2f;
+    yEnd -= cellHeight *0.2f;
+    if(blocks[i] != NULL) blocks[i]->setPosition(glm::vec4(xStart,yStart,xEnd,yEnd));
+  }
+}
+
+void
+GUI::draw(glm::vec2 mousePos){
   glm::mat4 mvp = glm::mat4(1.0f);
   glDisable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvp[0][0]);
 
-  float bottomMargin = 0.05f;
-  float totalWidth = 1.6f;
+  float bottomMargin = 18.0f;
+  float totalWidth = 1024.0f;
   float cellWidth = totalWidth/8.0f;
-  float cellHeight = cellWidth * wWidth / (float)wHeight;
+  float cellHeight = cellWidth;
   for(int i =0;i<8;i++){
-    float xStart = -0.8f+i*0.2f;
-    float xEnd = -0.6f+i*0.2f;
-    float yStart = -1.0f + bottomMargin;
-    float yEnd =  -1.0f + bottomMargin + cellHeight;
+    float xStart = 128.0f+i*128.0f;
+    float xEnd = 256.0f+i*128.0f;
+    float yStart = bottomMargin;
+    float yEnd =  bottomMargin + cellHeight;
     float vertices[]{
        xStart, yStart, 0.0f,
        xEnd, yEnd, 0.0f,
@@ -111,6 +151,8 @@ GUI::draw(){
       glBindTexture(GL_TEXTURE_2D, textureID);
       glUniform1i(textureID, 0);
     }
+
+    glUseProgram(shaderID);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, 6*sizeof(glm::vec3), vertices, GL_STATIC_DRAW);
@@ -144,20 +186,10 @@ GUI::draw(){
   }
 
   for(int i =0;i<8;i++){
-    if(blocks[i] != NULL) blocks[i]->draw();
+    if(blocks[i] != NULL) blocks[i]->draw(mousePos);
   }
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
-
-  char text[32];
-  for(int i =0;i<8;i++){
-    float xStart = -0.75f+i*0.2f;
-    float yStart = -0.9f + bottomMargin;
-    if(Inventory::inventory[i].type != Blocks::NONE){
-      sprintf(text, "%d",Inventory::inventory[i].count);
-      textManager->drawText(text, glm::vec2(xStart*640+640, yStart*360+360), 28.0f);
-    }
-  }
 
   crosshair->draw();
 }

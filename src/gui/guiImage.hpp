@@ -8,12 +8,18 @@
 class GUIImage{
 
 public:
-  GUIImage(GLuint mvpid, GLuint texID, glm::vec4 pos);
-  void draw();
+  GUIImage(GLuint mvpid, GLuint texID, GLuint _shaderID, glm::vec4 _pos);
+  virtual void draw();
+  void setTexture(GLuint texID);
+  void setPosition(glm::vec4 _pos);
+  glm::vec4 getPosition();
+protected:
+  glm::vec4 pos;
 private:
   GLuint textureID;
   GLuint vertexBuffer;
   GLuint uvBuffer;
   GLuint mvpID;
+  GLuint shaderID;
 };
 #endif

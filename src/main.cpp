@@ -174,15 +174,17 @@ int main(){
         //Hide cursor
         glfwSetCursorPos(window, wWidth/2, wHeight/2);
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        GUI::leaveGUI();
       }
       ePressed = true;
     } else if(glfwGetKey(window, GLFW_KEY_E) == GLFW_RELEASE){
       ePressed = false;
     }
 
+    double mouseX, mouseY;
+    glfwGetCursorPos(window, &mouseX, &mouseY);
+
     if(!inGUI){
-      double mouseX, mouseY;
-      glfwGetCursorPos(window, &mouseX, &mouseY);
       glfwSetCursorPos(window, wWidth/2, wHeight/2);
 
       if(xAngle == -10){
@@ -377,6 +379,17 @@ int main(){
         if(genTime > maxGenTime) maxGenTime = genTime;
 
         *chunkPosPtr = chunkPos;
+      } else {
+        ///in GUI
+        static bool lMousePressed = false;
+        int lMouseState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+        if(lMouseState == GLFW_PRESS && !lMousePressed){
+          lMousePressed = true;
+          GUI::leftMouseButton(glm::vec2(mouseX, 720 - mouseY), true);
+        } else if(lMouseState == GLFW_RELEASE) {
+          lMousePressed = false;
+          GUI::leftMouseButton(glm::vec2(mouseX, 720 - mouseY), false);
+        }
       }
 
       glUseProgram(shaderProgramID);
@@ -385,7 +398,7 @@ int main(){
       start = glfwGetTime();
       chunksDrawed = drawChunks(projection,view,chunkPos);
       DroppedBlock::drawAll(projection,view);
-      GUI::draw();
+      GUI::draw(glm::vec2(mouseX, 720 - mouseY));
       end = glfwGetTime();
       drawTime = end - start;
       if(drawTime > maxDrawTime) maxDrawTime = drawTime;

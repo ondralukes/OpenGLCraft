@@ -7,7 +7,7 @@ TextManager::init(const char * texturePath){
   glGenBuffers(1, &verticesBuffer);
 	glGenBuffers(1, &UVBuffer);
 
-  shaderID = LoadShaders("shaders/text.vertexshader", "shaders/text.fragmentshader");
+  shaderID = LoadShaders("shaders/gui.vertexshader", "shaders/gui.fragmentshader");
   uniformID = glGetUniformLocation(shaderID, "textureSampler");
 }
 
