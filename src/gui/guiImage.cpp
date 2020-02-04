@@ -51,6 +51,12 @@ void
 GUIImage::setTexture(GLuint texID){
   textureID = texID;
 }
+
+GLuint
+GUIImage::getTexture(){
+  return textureID;
+}
+
 void
 GUIImage::draw(){
   glm::mat4 mvp = glm::mat4(1.0f);

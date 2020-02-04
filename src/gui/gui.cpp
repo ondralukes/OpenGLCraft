@@ -8,10 +8,14 @@ GLuint GUI::textureID;
 GLuint GUI::selectedTextureID;
 GLuint GUI::mvpID;
 GLuint GUI::shaderID;
-ItemStack * GUI::blocks[8];
+std::vector<ItemStack *> GUI::blocks;
 GUIImage * GUI::crosshair;
+GUIImage * GUI::craftingGrid;
 TextManager * GUI::textManager;
 int GUI::selectedItemIndex = 0;
+bool GUI::inGUI = false;
+int GUI::currentDraggingIndex = -1;
+ItemField * GUI::itemFields;
 
 void
 GUI::init(GLuint mvpid, int ww, int wh){
@@ -42,11 +46,33 @@ GUI::init(GLuint mvpid, int ww, int wh){
     shaderID,
     glm::vec4(620, 340, 660, 380)
   );
+  craftingGrid = new GUIImage(
+    mvpID,
+    ResourceManager::getTexture("textures/craftinggrid.dds", false),
+    shaderID,
+    glm::vec4(440, 160, 840, 560)
+  );
+
+  itemFields = (ItemField *) malloc(17 * sizeof(ItemField));
+  for(int x = 0;x < 3;x++){
+    for(int y = 0;y < 3;y++){
+      itemFields[x+y*3] = ItemField(glm::vec2(507 + x*133, 227 + y*133));
+    }
+  }
+
+  for(int i =0;i< 8;i++){
+    itemFields[9 + i] = ItemField(glm::vec2(192 + i*128, 82));
+  }
   refresh();
 }
 
 void
 GUI::refresh(){
+  for(int i = 0;i<17;i++){
+    itemFields[i].removeContentPointer();
+  }
+  blocks.clear();
+  blocks.resize(8);
   float bottomMargin = 18.0f;
   float totalWidth = 1024.0f;
   float cellWidth = totalWidth/8.0f;
@@ -64,11 +90,12 @@ GUI::refresh(){
     if(blockType != Blocks::NONE){
       GLuint texture = Blocks::Block::getTextureFor(blockType);
       if(blocks[i] == NULL){
-        blocks[i] = new ItemStack(mvpID, texture, shaderID, glm::vec4(xStart,yStart,xEnd,yEnd), textManager);
+        blocks[i] = new ItemStack(mvpID, texture, shaderID, glm::vec4(xStart,yStart,xEnd,yEnd), textManager, blockType);
       } else {
         blocks[i]->setTexture(texture);
       }
       blocks[i]->setCount(Inventory::inventory[i].count);
+      itemFields[9+i].put(i);
     } else {
       if(blocks[i] != NULL) delete blocks[i];
       blocks[i] = NULL;
@@ -87,34 +114,102 @@ GUI::dispose(){
 }
 
 void
-GUI::leftMouseButton(glm::vec2 mousePos, bool state){
-  for(int i =0;i<8;i++){
+GUI::mouseButton(glm::vec2 mousePos, bool right, bool state){
+  if(!state) return;
+  for(int i =0;i<blocks.size();i++){
     if(blocks[i] == NULL) continue;
     glm::vec4 box = blocks[i]->getPosition();
     if(mousePos.x > box.x && mousePos.x < box.z &&
       mousePos.y > box.y && mousePos.y < box.w){
-        blocks[i]->setFollowMouse(state);
+        if(currentDraggingIndex != -1){
+          //Stick to nearest item field
+          float nearestD = 1000.0f;
+          ItemField * bestField;
+          for(int j = 0;j<17;j++){
+            float d = glm::length(mousePos - itemFields[j].getPosition());
+            if(d < nearestD){
+              nearestD = d;
+              bestField = &(itemFields[j]);
+            }
+          }
+          if(nearestD < 128.0f){
+            glm::vec4 pos = blocks[currentDraggingIndex]->getPosition();
+            glm::vec2 size = glm::vec2(pos.z - pos.x, pos.w - pos.y);
+            glm::vec2 fpos = bestField->getPosition();
+            blocks[currentDraggingIndex]->setPosition(
+              glm::vec4(
+                fpos.x - size.x/2.0f,
+                fpos.y - size.y/2.0f,
+                fpos.x + size.x/2.0f,
+                fpos.y + size.y/2.0f
+              )
+            );
+            bestField->put(currentDraggingIndex);
+            if(blocks[currentDraggingIndex] == NULL){
+               currentDraggingIndex = -1;
+             }
+          }
+        } else {
+          ItemStack * newStack = new ItemStack(mvpID, blocks[i]->getTexture(), shaderID, blocks[i]->getPosition(), textManager, blocks[i]->getBlockType());
+          int count = blocks[i]->getCount();
+          if(right){
+            delete blocks[i];
+            blocks[i] = NULL;
+          } else {
+            blocks[i]->setCount(count/2);
+            if(count/2 == 0){
+              delete blocks[i];
+              blocks[i] = NULL;
+            }
+            count -= count/2;
+          }
+          newStack->setCount(count);
+
+          blocks.push_back(newStack);
+          currentDraggingIndex = blocks.size() - 1;
+          blocks[currentDraggingIndex]->setFollowMouse(true);
+        }
+
+        break;
       }
   }
 }
 
 void
-GUI::leaveGUI(){
-  float bottomMargin = 18.0f;
-  float totalWidth = 1024.0f;
-  float cellWidth = totalWidth/8.0f;
-  float cellHeight = cellWidth;
+GUI::leaveGUI(glm::vec3 playerPos){
+  inGUI = false;
+  currentDraggingIndex = -1;
+  //Update inventory
   for(int i =0;i<8;i++){
-    float xStart = 128.0f+i*128.0f;
-    float xEnd = 256.0f+i*128.0f;
-    float yStart = bottomMargin;
-    float yEnd =  bottomMargin + cellHeight;
-    xStart += cellWidth *0.2f;
-    xEnd -= cellWidth *0.2f;
-    yStart += cellHeight *0.2f;
-    yEnd -= cellHeight *0.2f;
-    if(blocks[i] != NULL) blocks[i]->setPosition(glm::vec4(xStart,yStart,xEnd,yEnd));
+    ItemStack * content = itemFields[9 + i].getContent();
+    if(content == NULL){
+      Inventory::inventory[i].type = Blocks::NONE;
+    } else {
+      Inventory::inventory[i].type = content->getBlockType();
+      Inventory::inventory[i].count = content->getCount();
+    }
   }
+  //Remove blocks at crafting grid and drop them
+  for(int i = 0; i < 9;i++){
+    ItemStack * content = itemFields[i].getContent();
+    if(content != NULL){
+      for(int j =0;j<content->getCount();j++){
+        DroppedBlock * drop = new DroppedBlock(mvpID, content->getBlockType(), playerPos);
+        glm::vec3 vel(
+          ((rand()%40) - 20)* 0.01f,
+          1.5f,
+          ((rand()%40) - 20)* 0.01f
+        );
+        drop->setVelocity(vel);
+      }
+    }
+    itemFields[i].empty();
+  }
+}
+
+void
+GUI::enterGUI(){
+  inGUI = true;
 }
 
 void
@@ -185,11 +280,16 @@ GUI::draw(glm::vec2 mousePos){
     glDisableVertexAttribArray(1);
   }
 
-  for(int i =0;i<8;i++){
+  if(inGUI){
+    craftingGrid->draw();
+  } else {
+    crosshair->draw();
+  }
+
+  for(int i =0;i<blocks.size();i++){
     if(blocks[i] != NULL) blocks[i]->draw(mousePos);
   }
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
 
-  crosshair->draw();
 }

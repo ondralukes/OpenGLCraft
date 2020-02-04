@@ -132,7 +132,7 @@ DroppedBlock::updateAll(float deltaTime, glm::vec3 playerPos){
 void
 DroppedBlock::update(float deltaTime, glm::vec3 playerPos){
   float distance = glm::length(glm::vec3(modelMatrix[3])-playerPos) ;
-  if(distance < 1.75f){
+  if(distance < 1.75f && Inventory::isPlaceFor(blockType)){
     velocity = (playerPos - glm::vec3(modelMatrix[3]))*5.0f;
     if(distance < 0.5f){
       Inventory::add(blockType);

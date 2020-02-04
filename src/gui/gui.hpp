@@ -1,15 +1,20 @@
 #ifndef GUI_HPP
 #define GUI_HPP
 
+#include <vector>
 #include <glm/glm.hpp>
 #include <GL/glew.h>
 
 #include "resourceManager.hpp"
 #include "guiImage.hpp"
 #include "itemStack.hpp"
+#include "itemField.hpp"
 #include "blocks/block.hpp"
 #include "inventory.hpp"
 #include "text.hpp"
+#include "droppedBlock.hpp"
+
+class ItemField;
 
 class GUI{
 public:
@@ -18,8 +23,10 @@ public:
   static void refresh();
   static int selectedItemIndex;
   static void dispose();
-  static void leftMouseButton(glm::vec2 mousePos, bool state);
-  static void leaveGUI();
+  static void mouseButton(glm::vec2 mousePos, bool right, bool state);
+  static void leaveGUI(glm::vec3 playerPos);
+  static void enterGUI();
+  static std::vector<ItemStack *> blocks;
 private:
   static int wWidth;
   static int wHeight;
@@ -29,8 +36,11 @@ private:
   static GLuint selectedTextureID;
   static GLuint mvpID;
   static GLuint shaderID;
-  static ItemStack * blocks[8];
   static GUIImage * crosshair;
+  static GUIImage * craftingGrid;
   static TextManager * textManager;
+  static bool inGUI;
+  static ItemField * itemFields;
+  static int currentDraggingIndex;
 };
 #endif

@@ -23,6 +23,18 @@ Inventory::add(Blocks::block_type type, int count){
   saveManager->saveInventory();
 }
 
+bool
+Inventory::isPlaceFor(Blocks::block_type type){
+  for(int i = 0;i<8;i++){
+    if(inventory[i].type == type){
+      return true;
+    } else if(inventory[i].type == Blocks::NONE){
+      return true;
+    }
+  }
+  return false;
+}
+
 void
 Inventory::remove(int index, int count){
   inventory[index].count -= count;

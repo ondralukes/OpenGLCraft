@@ -11,6 +11,7 @@ public:
   GUIImage(GLuint mvpid, GLuint texID, GLuint _shaderID, glm::vec4 _pos);
   virtual void draw();
   void setTexture(GLuint texID);
+  GLuint getTexture();
   void setPosition(glm::vec4 _pos);
   glm::vec4 getPosition();
 protected:

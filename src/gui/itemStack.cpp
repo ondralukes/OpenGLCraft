@@ -1,9 +1,15 @@
 #include "itemStack.hpp"
 
-ItemStack::ItemStack(GLuint mvpid, GLuint texID, GLuint shaderID, glm::vec4 pos, TextManager * textManager)
+ItemStack::ItemStack(GLuint mvpid, GLuint texID, GLuint shaderID, glm::vec4 pos, TextManager * textManager, Blocks::block_type blType)
   : GUIImage(mvpid, texID, shaderID, pos), textManager(textManager){
     setCount(1);
+    block = blType;
   }
+
+Blocks::block_type
+ItemStack::getBlockType(){
+  return block;
+}
 
 void
 ItemStack::setFollowMouse(bool b){
@@ -14,6 +20,7 @@ bool
 ItemStack::getFollowMouse(){
   return followMouse;
 }
+
 void
 ItemStack::setCount(int c){
   count = c;
