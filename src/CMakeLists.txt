@@ -5,7 +5,11 @@ project(OpenGLCraft)
 
 find_package(OpenGL REQUIRED)
 
+if(WIN32)
+else()
 execute_process(COMMAND git describe --tags --abbrev=8 --long --dirty --broken OUTPUT_VARIABLE OGLC_VERSION)
+endif()
+
 string(REGEX REPLACE "\n$" "" OGLC_VERSION "${OGLC_VERSION}")
 
 add_compile_definitions(OGLC_VERSION="${OGLC_VERSION}")
