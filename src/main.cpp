@@ -261,13 +261,21 @@ int main(){
         if(getLookingAt(camPos,camDirection,&removePos)){
           if(!lMousePressed) lMousePressRemoveBlock = removePos;
           if(removePos == lMousePressRemoveBlock){
-            removeBlock(removePos, time-lMousePressTime);
+            //Create temporary block
+            block_data blData;
+            blData.type = Inventory::getSelectedBlock();
+            Blocks::Block * usedTool = Blocks::Block::decodeBlock(blData, blockPos, mvpID);
+            removeBlock(removePos, time-lMousePressTime, usedTool);
+            if(usedTool != NULL){
+              usedTool->doDrop = false;
+              delete usedTool;
+            }
           }
         }
         lMousePressed = true;
       }
       if(lMouseState == GLFW_RELEASE || removePos != lMousePressRemoveBlock){
-        removeBlock(lMousePressRemoveBlock, 0.0f);
+        removeBlock(lMousePressRemoveBlock, 0.0f, NULL);
         lMousePressed = false;
       }
 

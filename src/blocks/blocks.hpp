@@ -9,5 +9,6 @@
 #include "wood.hpp"
 #include "leaves.hpp"
 #include "stick.hpp"
+#include "pickaxe.hpp"
 
 #endif

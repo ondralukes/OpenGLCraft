@@ -203,7 +203,6 @@ GUI::mouseButton(glm::vec2 mousePos, bool right, bool state){
 void
 GUI::leaveGUI(glm::vec3 playerPos){
   inGUI = false;
-  currentDraggingIndex = -1;
   //Update inventory
   for(int i =0;i<8;i++){
     ItemStack * content = itemFields[9 + i].getContent();
@@ -230,6 +229,23 @@ GUI::leaveGUI(glm::vec3 playerPos){
     }
     itemFields[i].empty();
   }
+
+  //Drop dragged item
+  if(currentDraggingIndex != -1){
+    ItemStack * content = blocks[currentDraggingIndex];
+    for(int j =0;j<content->getCount();j++){
+      DroppedBlock * drop = new DroppedBlock(mvpID, content->getBlockType(), playerPos);
+      glm::vec3 vel(
+        ((rand()%40) - 20)* 0.01f,
+        1.5f,
+        ((rand()%40) - 20)* 0.01f
+      );
+      drop->setVelocity(vel);
+    }
+    delete content;
+    blocks[currentDraggingIndex] = NULL;
+  }
+  currentDraggingIndex = -1;
 }
 
 void
@@ -301,7 +317,13 @@ GUI::updateCraftingResult(){
         textManager,
         block);
       blocks[craftingOutputIndex]->setCount(count *  Recipes::recipes[i].getCount());
+      foundRecipe = true;
+      break;
     }
+  }
+  if(!foundRecipe){
+    if(blocks[craftingOutputIndex] != NULL) delete blocks[craftingOutputIndex];
+    blocks[craftingOutputIndex] = NULL;
   }
 }
 

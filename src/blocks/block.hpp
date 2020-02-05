@@ -15,7 +15,15 @@ namespace Blocks{
     DIRT = 3,
     WOOD = 4,
     LEAVES = 5,
-    STICK = 6
+    STICK = 6,
+    WOODEN_PICKAXE = 7,
+    STONE_PICKAXE = 8
+  };
+
+  enum tool_type : uint16_t
+  {
+    NO_TOOL = 0,
+    PICKAXE = 1
   };
 
   struct block_data {
@@ -32,10 +40,16 @@ namespace Blocks{
     GLuint textureID = 100;
     GLuint mvpID;
     int damageLevel = 0;
-    float hardness;
     intvec3 pos;
     block_type type;
     virtual block_data getBlockData() = 0;
+    float getHardness(Block * b);
+    tool_type toolType = NO_TOOL;
+    float toolLevel = 0.0f;
+    bool doDrop = true;
+  protected:
+    float hardness;
+    float pickaxeEff = 0.0f;
   };
 }
 #endif

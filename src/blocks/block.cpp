@@ -10,6 +10,7 @@ Block::Block(const char * texpath){
 }
 
 Block::~Block(){
+  if(!doDrop) return;
   glm::vec3 p(pos.x,pos.y,pos.z);
   DroppedBlock * drop = new DroppedBlock(mvpID, type, p);
   glm::vec3 vel(
@@ -42,6 +43,12 @@ Block::decodeBlock(block_data data, intvec3 pos, GLuint mvpid){
     case STICK:
       bl = (Block *)new Stick();
       break;
+    case WOODEN_PICKAXE:
+      bl = (Block *)new WoodenPickaxe();
+      break;
+    case STONE_PICKAXE:
+      bl = (Block *)new StonePickaxe();
+      break;
     default:
       bl = NULL;
       break;
@@ -73,11 +80,27 @@ Block::getTextureFor(block_type type){
   if(type == STICK){
     return ResourceManager::getTexture("textures/stick.dds");
   }
+  if(type == WOODEN_PICKAXE){
+    return ResourceManager::getTexture("textures/woodenPickaxe.dds");
+  }
+  if(type == STONE_PICKAXE){
+    return ResourceManager::getTexture("textures/stonePickaxe.dds");
+  }
   printf("No texture for block!\n");
 }
 
 bool
 Block::canPlace(block_type type){
   if(type == STICK) return false;
+  if(type == WOODEN_PICKAXE || type == STONE_PICKAXE) return false;
   return true;
+}
+
+float
+Block::getHardness(Block * b){
+  if(b==NULL) return hardness;
+  if(b->toolType == PICKAXE){
+    return hardness / (1.0f + b->toolLevel * pickaxeEff);
+  }
+  return hardness;
 }

@@ -21,7 +21,7 @@ bool isBlock(intvec3 pos){
   return ch->blocks[relPos.x][relPos.y][relPos.z] != NULL;
 }
 
-void removeBlock(intvec3 pos, double time , bool update){
+void removeBlock(intvec3 pos, double time, Blocks::Block * usedTool, bool update){
   intvec3 chunkPos(
     floor(pos.x/(float)CHUNK_SIZE),
     floor(pos.y/(float)CHUNK_SIZE),
@@ -35,7 +35,7 @@ void removeBlock(intvec3 pos, double time , bool update){
     pos.z - chunkPos.z*CHUNK_SIZE
   );
   if(ch->blocks[relPos.x][relPos.y][relPos.z] == NULL) return;
-  float hardness = ch->blocks[relPos.x][relPos.y][relPos.z]->hardness;
+  float hardness = ch->blocks[relPos.x][relPos.y][relPos.z]->getHardness(usedTool);
   ch->blocks[relPos.x][relPos.y][relPos.z]->damageLevel = floor(time / hardness);
   if(ch->blocks[relPos.x][relPos.y][relPos.z]->damageLevel > 8){
     delete ch->blocks[relPos.x][relPos.y][relPos.z];
