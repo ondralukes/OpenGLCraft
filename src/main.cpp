@@ -24,6 +24,7 @@
 #include "droppedBlock.hpp"
 #include "resourceManager.hpp"
 #include "ray.hpp"
+#include "blocks/recipes.hpp"
 
 
 const int wWidth = 1280;
@@ -101,6 +102,7 @@ int main(){
   Inventory::saveManager = saveManager;
   TextManager * text = new TextManager();
   text->init("textures/font.dds");
+  Recipes::init();
   GUI::init(mvpID, wWidth, wHeight);
 
   glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_FALSE);
@@ -276,7 +278,7 @@ int main(){
         if(getLookingAt(camPos,camDirection,NULL,&placePos)){
           if(placePos.x != blockPos.x || placePos.z != blockPos.z ||(placePos.y != blockPos.y+1 && placePos.y != blockPos.y+2)){
             Blocks::block_type blType = Inventory::getSelectedBlock();
-            if(blType != Blocks::NONE){
+            if(blType != Blocks::NONE && Block::Block::canPlace(blType)){
               Blocks::block_data blData;
               blData.type = blType;
               Blocks::Block * block = Blocks::Block::decodeBlock(blData, placePos, mvpID);

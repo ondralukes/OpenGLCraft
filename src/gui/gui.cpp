@@ -16,6 +16,7 @@ int GUI::selectedItemIndex = 0;
 bool GUI::inGUI = false;
 int GUI::currentDraggingIndex = -1;
 ItemField * GUI::itemFields;
+int GUI::craftingOutputIndex;
 
 void
 GUI::init(GLuint mvpid, int ww, int wh){
@@ -56,7 +57,7 @@ GUI::init(GLuint mvpid, int ww, int wh){
   itemFields = (ItemField *) malloc(17 * sizeof(ItemField));
   for(int x = 0;x < 3;x++){
     for(int y = 0;y < 3;y++){
-      itemFields[x+y*3] = ItemField(glm::vec2(507 + x*133, 227 + y*133));
+      itemFields[x+y*3] = ItemField(glm::vec2(507 + x*133, 227 + (2-y)*133));
     }
   }
 
@@ -152,7 +153,7 @@ GUI::mouseButton(glm::vec2 mousePos, bool right, bool state){
         } else {
           ItemStack * newStack = new ItemStack(mvpID, blocks[i]->getTexture(), shaderID, blocks[i]->getPosition(), textManager, blocks[i]->getBlockType());
           int count = blocks[i]->getCount();
-          if(right){
+          if(!right || i == craftingOutputIndex){
             delete blocks[i];
             blocks[i] = NULL;
           } else {
@@ -168,11 +169,35 @@ GUI::mouseButton(glm::vec2 mousePos, bool right, bool state){
           blocks.push_back(newStack);
           currentDraggingIndex = blocks.size() - 1;
           blocks[currentDraggingIndex]->setFollowMouse(true);
+
+          //Remove used items from crating grid
+          if(i == craftingOutputIndex){
+            int count = 999999999;
+            for(int x = 0;x < 3;x++){
+              for(int y = 0;y < 3;y++){
+                if(itemFields[x+y*3].getContent() != NULL){
+                  int c = itemFields[x+y*3].getContent()->getCount();
+                  if(c < count) count = c;
+                }
+              }
+            }
+            for(int x = 0;x < 3;x++){
+              for(int y = 0;y < 3;y++){
+                if(itemFields[x+y*3].getContent() == NULL) continue;
+                int c = itemFields[x+y*3].getContent()->getCount();
+                itemFields[x+y*3].getContent()->setCount(c-count);
+                if(c - count <= 0){
+                  itemFields[x+y*3].empty();
+                }
+              }
+            }
+          }
         }
 
         break;
       }
   }
+  updateCraftingResult();
 }
 
 void
@@ -210,6 +235,74 @@ GUI::leaveGUI(glm::vec3 playerPos){
 void
 GUI::enterGUI(){
   inGUI = true;
+
+  //Create item stack for crafting output
+  blocks.push_back(NULL);
+  craftingOutputIndex = blocks.size() - 1;
+}
+
+void
+GUI::updateCraftingResult(){
+  Blocks::block_type input[3][3];
+  int count = 999999999;
+  bool empty = true;
+  for(int x = 0;x < 3;x++){
+    for(int y = 0;y < 3;y++){
+      if(itemFields[x+y*3].getContent() == NULL){
+        input[x][y] = Blocks::NONE;
+      } else {
+        input[x][y] = itemFields[x+y*3].getContent()->getBlockType();
+        int c = itemFields[x+y*3].getContent()->getCount();
+        if(c < count) count = c;
+        empty = false;
+      }
+    }
+  }
+  if(empty) return;
+  //Move to left
+  while(true){
+    bool move = true;
+    for(int y = 0;y<3;y++){
+      if(input[0][y] != Blocks::NONE) move = false;
+    }
+    if(!move) break;
+    for(int x = 0;x<2;x++){
+      for(int y = 0;y < 3;y++){
+        input[x][y] = input[x+1][y];
+        input[x+1][y] = Blocks::NONE;
+      }
+    }
+  }
+
+  //Move to top corner
+  while(true){
+    bool move = true;
+    for(int x = 0;x<3;x++){
+      if(input[x][0] != Blocks::NONE) move = false;
+    }
+    if(!move) break;
+    for(int y = 0;y<2;y++){
+      for(int x = 0;x < 3;x++){
+        input[x][y] = input[x][y+1];
+        input[x][y+1] = Blocks::NONE;
+      }
+    }
+  }
+
+  bool foundRecipe = false;
+  for(int i =0;i<Recipes::recipesCount;i++){
+    if(Recipes::recipes[i].doesMatch(input)){
+      Blocks::block_type block = Recipes::recipes[i].getOutput();
+      blocks[craftingOutputIndex] = new ItemStack(
+        mvpID,
+        Blocks::Block::getTextureFor(block),
+        shaderID,
+        glm::vec4(1000.6f, 321.6f, 1077.4f, 398.4f),
+        textManager,
+        block);
+      blocks[craftingOutputIndex]->setCount(count *  Recipes::recipes[i].getCount());
+    }
+  }
 }
 
 void

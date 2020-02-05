@@ -14,7 +14,8 @@ namespace Blocks{
     STONE = 2,
     DIRT = 3,
     WOOD = 4,
-    LEAVES = 5
+    LEAVES = 5,
+    STICK = 6
   };
 
   struct block_data {
@@ -27,6 +28,7 @@ namespace Blocks{
     ~Block();
     static Block * decodeBlock(block_data data, intvec3 pos, GLuint mvpid);
     static GLuint getTextureFor(block_type type);
+    static bool canPlace(block_type type);
     GLuint textureID = 100;
     GLuint mvpID;
     int damageLevel = 0;

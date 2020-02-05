@@ -8,5 +8,6 @@
 #include "dirt.hpp"
 #include "wood.hpp"
 #include "leaves.hpp"
+#include "stick.hpp"
 
 #endif

@@ -13,6 +13,7 @@
 #include "inventory.hpp"
 #include "text.hpp"
 #include "droppedBlock.hpp"
+#include "blocks/recipes.hpp"
 
 class ItemField;
 
@@ -42,5 +43,8 @@ private:
   static bool inGUI;
   static ItemField * itemFields;
   static int currentDraggingIndex;
+  static int craftingOutputIndex;
+
+  static void updateCraftingResult();
 };
 #endif

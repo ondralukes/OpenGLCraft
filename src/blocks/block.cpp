@@ -39,6 +39,9 @@ Block::decodeBlock(block_data data, intvec3 pos, GLuint mvpid){
     case LEAVES:
       bl = (Block *)new Leaves();
       break;
+    case STICK:
+      bl = (Block *)new Stick();
+      break;
     default:
       bl = NULL;
       break;
@@ -67,4 +70,14 @@ Block::getTextureFor(block_type type){
   if(type == LEAVES){
     return ResourceManager::getTexture("textures/leaves.dds");
   }
+  if(type == STICK){
+    return ResourceManager::getTexture("textures/stick.dds");
+  }
+  printf("No texture for block!\n");
+}
+
+bool
+Block::canPlace(block_type type){
+  if(type == STICK) return false;
+  return true;
 }
