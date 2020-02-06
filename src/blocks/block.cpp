@@ -57,6 +57,12 @@ Block::decodeBlock(block_data data, intvec3 pos, GLuint mvpid){
     case STONE_AXE:
       bl = (Block *)new StoneAxe();
       break;
+    case WOODEN_SHOVEL:
+      bl = (Block *)new WoodenShovel();
+      break;
+    case STONE_SHOVEL:
+      bl = (Block *)new StoneShovel();
+      break;
     default:
       bl = NULL;
       break;
@@ -102,6 +108,12 @@ Block::getTextureFor(block_type type){
   if(type == STONE_AXE){
     return ResourceManager::getTexture("textures/stoneAxe.dds");
   }
+  if(type == WOODEN_SHOVEL){
+    return ResourceManager::getTexture("textures/woodenShovel.dds");
+  }
+  if(type == STONE_SHOVEL){
+    return ResourceManager::getTexture("textures/stoneShovel.dds");
+  }
   printf("No texture for block!\n");
 }
 
@@ -109,6 +121,8 @@ bool
 Block::canPlace(block_type type){
   if(type == STICK) return false;
   if(type == WOODEN_PICKAXE || type == STONE_PICKAXE) return false;
+  if(type == WOODEN_AXE || type == STONE_AXE) return false;
+  if(type == WOODEN_SHOVEL || type == STONE_SHOVEL) return false;
   return true;
 }
 
@@ -120,6 +134,9 @@ Block::getHardness(Block * b){
   }
   if(b->toolType == AXE){
     return hardness / (1.0f + b->toolLevel * axeEff);
+  }
+  if(b->toolType == SHOVEL){
+    return hardness / (1.0f + b->toolLevel * shovelEff);
   }
   return hardness;
 }

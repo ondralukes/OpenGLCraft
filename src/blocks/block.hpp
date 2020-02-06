@@ -18,14 +18,17 @@ namespace Blocks{
     WOODEN_PICKAXE = 7,
     STONE_PICKAXE = 8,
     WOODEN_AXE = 9,
-    STONE_AXE = 10
+    STONE_AXE = 10,
+    WOODEN_SHOVEL = 11,
+    STONE_SHOVEL = 12
   };
 
   enum tool_type : uint16_t
   {
     NO_TOOL = 0,
     PICKAXE = 1,
-    AXE = 2
+    AXE = 2,
+    SHOVEL = 3
   };
 
   struct block_data {
@@ -59,6 +62,7 @@ namespace Blocks{
     float hardness;
     float pickaxeEff = 0.0f;
     float axeEff = 0.0f;
+    float shovelEff = 0.0f;
     block_data data;
   };
 }
