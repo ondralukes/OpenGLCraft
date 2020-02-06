@@ -8,6 +8,7 @@ WoodenPickaxe::WoodenPickaxe() : Block("textures/woodenPickaxe.dds"){
   toolLevel = 1.0f;
   hp = 25;
   maxStack = 1;
+  drawFlat = true;
 }
 
 void
@@ -47,6 +48,7 @@ StonePickaxe::StonePickaxe() : Block("textures/stonePickaxe.dds"){
   toolLevel = 2.0f;
   hp = 75;
   maxStack = 1;
+  drawFlat = true;
 }
 
 void

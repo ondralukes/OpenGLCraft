@@ -44,6 +44,7 @@ namespace Blocks{
     GLuint mvpID;
     int damageLevel = 0;
     int maxStack = 64;
+    bool drawFlat = false;
     intvec3 pos;
     block_data getBlockData();
     block_type getType();

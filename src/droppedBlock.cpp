@@ -45,7 +45,15 @@ DroppedBlock::DroppedBlock(GLuint mvpid, Blocks::Block * bl, glm::vec3 pos){
     0.15f,-0.15f,-0.15f,
     -0.15f, 0.15f,-0.15f,
     0.15f, 0.15f,-0.15f,
-    0.15f,-0.15f,-0.15f
+    0.15f,-0.15f,-0.15f,
+
+    //FLAT
+    0.0f,-0.15f, 0.15f,
+    0.0f,-0.15f,-0.15f,
+    0.0f, 0.15f,-0.15f,
+    0.0f,-0.15f, 0.15f,
+    0.0f, 0.15f, 0.15f,
+    0.0f, 0.15f,-0.15f,
   };
   static const float UVs[]{
     0.0f, 1.0f,
@@ -54,30 +62,42 @@ DroppedBlock::DroppedBlock(GLuint mvpid, Blocks::Block * bl, glm::vec3 pos){
     0.0f, 1.0f,
     1.0f, 1.0f,
     1.0f, 0.0f,
+
     0.0f, 1.0f,
     0.0f, 0.0f,
     1.0f, 0.0f,
     0.0f, 1.0f,
     1.0f, 1.0f,
     1.0f, 0.0f,
+
     0.0f, 1.0f,
     0.0f, 0.0f,
     1.0f, 0.0f,
     0.0f, 1.0f,
     1.0f, 1.0f,
     1.0f, 0.0f,
+
     0.0f, 1.0f,
     0.0f, 0.0f,
     1.0f, 0.0f,
     0.0f, 1.0f,
     1.0f, 1.0f,
     1.0f, 0.0f,
+
     0.0f, 1.0f,
     0.0f, 0.0f,
     1.0f, 0.0f,
     0.0f, 1.0f,
     1.0f, 1.0f,
     1.0f, 0.0f,
+
+    0.0f, 1.0f,
+    0.0f, 0.0f,
+    1.0f, 0.0f,
+    0.0f, 1.0f,
+    1.0f, 1.0f,
+    1.0f, 0.0f,
+
     0.0f, 1.0f,
     0.0f, 0.0f,
     1.0f, 0.0f,
@@ -174,7 +194,11 @@ DroppedBlock::update(float deltaTime, glm::vec3 playerPos){
     vel/=c;
     velocity = vel;
   }
+  modelMatrix = glm::mat4(1.0f);
+  modelMatrix[3] = glm::vec4(pos, 1.0f);
   modelMatrix = glm::translate(modelMatrix, deltaTime * velocity);
+  modelMatrix = glm::rotate(modelMatrix, rotation, glm::vec3(0,1,0));
+  rotation += deltaTime;
 }
 
 void
@@ -187,6 +211,8 @@ DroppedBlock::drawAll(glm::mat4 projection, glm::mat4 view){
 void
 DroppedBlock::draw(glm::mat4 projection, glm::mat4 view){
   glm::mat4 mvp = projection*view*modelMatrix;
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvp[0][0]);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, textureID);
@@ -214,8 +240,11 @@ DroppedBlock::draw(glm::mat4 projection, glm::mat4 view){
     0,                                // stride
     (void*)0                          // array buffer offset
   );
-
-  glDrawArrays(GL_TRIANGLES, 0, 36);
+  if(block->drawFlat){
+    glDrawArrays(GL_TRIANGLES, 36, 6);
+  } else {
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+  }
 
   glDisableVertexAttribArray(0);
   glDisableVertexAttribArray(1);

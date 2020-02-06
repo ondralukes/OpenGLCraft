@@ -31,5 +31,6 @@ private:
   GLuint uvBuffer;
   glm::vec3 velocity;
   glm::mat4 modelMatrix;
+  float rotation = 0;
 };
 #endif
