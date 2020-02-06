@@ -10,5 +10,6 @@
 #include "leaves.hpp"
 #include "stick.hpp"
 #include "pickaxe.hpp"
+#include "axe.hpp"
 
 #endif

@@ -51,6 +51,12 @@ Block::decodeBlock(block_data data, intvec3 pos, GLuint mvpid){
     case STONE_PICKAXE:
       bl = (Block *)new StonePickaxe();
       break;
+    case WOODEN_AXE:
+      bl = (Block *)new WoodenAxe();
+      break;
+    case STONE_AXE:
+      bl = (Block *)new StoneAxe();
+      break;
     default:
       bl = NULL;
       break;
@@ -90,6 +96,12 @@ Block::getTextureFor(block_type type){
   if(type == STONE_PICKAXE){
     return ResourceManager::getTexture("textures/stonePickaxe.dds");
   }
+  if(type == WOODEN_AXE){
+    return ResourceManager::getTexture("textures/woodenAxe.dds");
+  }
+  if(type == STONE_AXE){
+    return ResourceManager::getTexture("textures/stoneAxe.dds");
+  }
   printf("No texture for block!\n");
 }
 
@@ -105,6 +117,9 @@ Block::getHardness(Block * b){
   if(b==NULL) return hardness;
   if(b->toolType == PICKAXE){
     return hardness / (1.0f + b->toolLevel * pickaxeEff);
+  }
+  if(b->toolType == AXE){
+    return hardness / (1.0f + b->toolLevel * axeEff);
   }
   return hardness;
 }

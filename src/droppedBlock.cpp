@@ -213,6 +213,8 @@ DroppedBlock::draw(glm::mat4 projection, glm::mat4 view){
   glm::mat4 mvp = projection*view*modelMatrix;
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
   glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvp[0][0]);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, textureID);
