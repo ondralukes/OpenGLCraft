@@ -34,7 +34,9 @@ Inventory::isPlaceFor(Blocks::block_data block){
     if(inventory[i].block == NULL){
       return true;
     } else if(inventory[i].block->getType() == block.type){
-      return true;
+      if(inventory[i].count < inventory[i].block->maxStack){
+        return true;
+      }
     }
   }
   return false;
