@@ -229,6 +229,8 @@ GUI::dropSelected(glm::vec3 pos, glm::vec3 dir){
 void
 GUI::leaveGUI(glm::vec3 pos, glm::vec3 dir){
   inGUI = false;
+  if(blocks[craftingOutputIndex] != NULL) delete blocks[craftingOutputIndex];
+  blocks[craftingOutputIndex] = NULL;
   //Update inventory
   for(int i =0;i<8;i++){
     ItemStack * content = itemFields[9 + i].getContent();
