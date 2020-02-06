@@ -395,6 +395,7 @@ SaveManager::allocateBlockData(size_t size){
   size_t pos = blockDataFilePos;
   fseek(blockDatafp, blockDataFilePos, SEEK_SET);
   fwrite("b", sizeof(char), size, blockDatafp);
+  blockDataFilePos += size;
   return pos;
 }
 
