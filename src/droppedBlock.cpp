@@ -131,16 +131,20 @@ DroppedBlock::updateAll(float deltaTime, glm::vec3 playerPos){
 
 void
 DroppedBlock::update(float deltaTime, glm::vec3 playerPos){
-  float distance = glm::length(glm::vec3(modelMatrix[3])-playerPos) ;
+  float distance = glm::length(glm::vec3(modelMatrix[3])-playerPos);
+  if(glm::length(velocity) < 0.5f) canPick = true;
   if(distance < 1.75f && Inventory::isPlaceFor(block->getBlockData())){
-    velocity = (playerPos - glm::vec3(modelMatrix[3]))*5.0f;
-    if(distance < 0.5f){
-      Inventory::add(block);
-      delete this;
-      return;
+    if(canPick){
+      velocity = (playerPos - glm::vec3(modelMatrix[3]))*5.0f;
+      if(distance < 0.5f){
+        Inventory::add(block);
+        delete this;
+        return;
+      }
     }
   } else {
     velocity.y -= deltaTime*9.81f;
+    canPick = true;
   }
   glm::vec3 pos = modelMatrix[3];
   intvec3 blockPos(
@@ -148,11 +152,29 @@ DroppedBlock::update(float deltaTime, glm::vec3 playerPos){
     round(pos.y-0.15f),
     round(pos.z)
   );
-  if(!isBlock(blockPos) || velocity.y > 0){
-    modelMatrix = glm::translate(modelMatrix, deltaTime * velocity);
-  } else {
-    velocity = glm::vec3(0, 0, 0);
+  glm::vec3 vel = glm::vec3(0,0,0);
+  float c = 0;
+  for(float x = -1.0f;x<=1.0f;x+=2.0f){
+    for(float y = -1.0f;y<=1.0f;y+=2.0f){
+    for(float z = -1.0f;z<=1.0f;z+=2.0f){
+      intvec3 p(
+        round(pos.x+0.15f*x),
+        round(pos.y+0.15f*y),
+        round(pos.z+0.15f*z)
+      );
+
+      if(isBlock(p)){
+        vel += glm::vec3(-x,-y,-z) * 0.1f;
+        c++;
+      }
+    }
   }
+  }
+  if(c != 0){
+    vel/=c;
+    velocity = vel;
+  }
+  modelMatrix = glm::translate(modelMatrix, deltaTime * velocity);
 }
 
 void

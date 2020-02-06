@@ -18,6 +18,7 @@ public:
   void setVelocity(glm::vec3 v);
   static void drawAll(glm::mat4 projection, glm::mat4 view);
   static void updateAll(float deltaTime, glm::vec3 playerPos);
+  bool canPick = true;
 private:
   static std::vector<DroppedBlock *> droppedBlocks;
   int id = 66666;

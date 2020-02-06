@@ -24,9 +24,10 @@ public:
   static void refresh();
   static int selectedItemIndex;
   static void dispose();
-  static void mouseButton(glm::vec2 mousePos, bool right, bool state);
-  static void leaveGUI(glm::vec3 playerPos);
+  static void mouseButton(glm::vec2 mousePos, bool right, bool state, glm::vec3 pos, glm::vec3 dir);
+  static void leaveGUI(glm::vec3 pos, glm::vec3 dir);
   static void enterGUI();
+  static void dropSelected(glm::vec3 pos, glm::vec3 dir);
   static std::vector<ItemStack *> blocks;
 private:
   static int wWidth;

@@ -17,7 +17,8 @@ public:
   static void remove(int index, int count = 1);
   static bool isPlaceFor(Blocks::block_data block);
   static Blocks::Block * getSelectedBlock();
-  static void destroySelectedBlock();
+  static int getSelectedCount();
+  static void destroySelectedBlock(bool del = true);
   static inventory_item inventory[8];
 };
 

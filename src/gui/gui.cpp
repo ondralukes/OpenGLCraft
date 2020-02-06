@@ -115,14 +115,16 @@ GUI::dispose(){
 }
 
 void
-GUI::mouseButton(glm::vec2 mousePos, bool right, bool state){
+GUI::mouseButton(glm::vec2 mousePos, bool right, bool state, glm::vec3 pos, glm::vec3 dir){
   if(!state) return;
+  bool drop = false;
   for(int i =0;i<blocks.size();i++){
     if(blocks[i] == NULL) continue;
     glm::vec4 box = blocks[i]->getPosition();
     if(mousePos.x > box.x && mousePos.x < box.z &&
       mousePos.y > box.y && mousePos.y < box.w){
         if(currentDraggingIndex != -1){
+          drop = true;
           //Stick to nearest item field
           float nearestD = 1000.0f;
           ItemField * bestField;
@@ -149,6 +151,8 @@ GUI::mouseButton(glm::vec2 mousePos, bool right, bool state){
             if(blocks[currentDraggingIndex] == NULL){
                currentDraggingIndex = -1;
              }
+             drop = false;
+             break;
           }
         } else {
           ItemStack * newStack = new ItemStack(mvpID, blocks[i]->getTexture(), shaderID, blocks[i]->getPosition(), textManager, blocks[i]->getBlock());
@@ -202,10 +206,28 @@ GUI::mouseButton(glm::vec2 mousePos, bool right, bool state){
       }
   }
   updateCraftingResult();
+  if(drop) {
+    dropSelected(pos,dir);
+  }
 }
 
 void
-GUI::leaveGUI(glm::vec3 playerPos){
+GUI::dropSelected(glm::vec3 pos, glm::vec3 dir){
+  if(currentDraggingIndex == -1) return;
+  Block * droppedBlock = Blocks::Block::decodeBlock(blocks[currentDraggingIndex]->getBlock()->getBlockData(), intvec3(0,0,0), mvpID);
+  for(int i =0;i<blocks[currentDraggingIndex]->getCount();i++){
+    DroppedBlock * drop = new DroppedBlock(mvpID, droppedBlock, pos);
+    float speed = (rand()%2000)/1000.0f + 4.0f;
+    drop->setVelocity(dir*speed);
+    drop->canPick = false;
+  }
+  blocks[GUI::currentDraggingIndex] = NULL;
+  currentDraggingIndex = -1;
+
+}
+
+void
+GUI::leaveGUI(glm::vec3 pos, glm::vec3 dir){
   inGUI = false;
   //Update inventory
   for(int i =0;i<8;i++){
@@ -223,13 +245,10 @@ GUI::leaveGUI(glm::vec3 playerPos){
     ItemStack * content = itemFields[i].getContent();
     if(content != NULL){
       for(int j =0;j<content->getCount();j++){
-        DroppedBlock * drop = new DroppedBlock(mvpID, content->getBlock(), playerPos);
-        glm::vec3 vel(
-          ((rand()%40) - 20)* 0.01f,
-          1.5f,
-          ((rand()%40) - 20)* 0.01f
-        );
-        drop->setVelocity(vel);
+        DroppedBlock * drop = new DroppedBlock(mvpID, content->getBlock(), pos);
+        float speed = (rand()%2000)/1000.0f + 4.0f;
+        drop->setVelocity(dir*speed);
+        drop->canPick = false;
       }
     }
     itemFields[i].empty();
@@ -239,13 +258,10 @@ GUI::leaveGUI(glm::vec3 playerPos){
   if(currentDraggingIndex != -1){
     ItemStack * content = blocks[currentDraggingIndex];
     for(int j =0;j<content->getCount();j++){
-      DroppedBlock * drop = new DroppedBlock(mvpID, content->getBlock(), playerPos);
-      glm::vec3 vel(
-        ((rand()%40) - 20)* 0.01f,
-        1.5f,
-        ((rand()%40) - 20)* 0.01f
-      );
-      drop->setVelocity(vel);
+      DroppedBlock * drop = new DroppedBlock(mvpID, content->getBlock(), pos);
+      float speed = (rand()%2000)/1000.0f + 4.0f;
+      drop->setVelocity(dir*speed);
+      drop->canPick = false;
     }
     delete content;
     blocks[currentDraggingIndex] = NULL;

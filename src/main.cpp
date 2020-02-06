@@ -118,6 +118,7 @@ int main(){
   double yAngle = -10;
 
   glm::vec3 camPos = saveManager->loadPlayerPos();
+  glm::vec3 camDirection;
   glm::vec3 oldCamPos = camPos;
 
 
@@ -178,11 +179,30 @@ int main(){
         //Hide cursor
         glfwSetCursorPos(window, wWidth/2, wHeight/2);
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-        GUI::leaveGUI(camPos);
+        GUI::leaveGUI(camPos, camDirection);
       }
       ePressed = true;
     } else if(glfwGetKey(window, GLFW_KEY_E) == GLFW_RELEASE){
       ePressed = false;
+    }
+
+    static bool qPressed = false;
+    if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS && !qPressed){
+      if(!inGUI && Inventory::getSelectedBlock() != NULL){
+        for(int i = 0;i<Inventory::getSelectedCount();i++){
+          DroppedBlock * drop = new DroppedBlock(mvpID, Inventory::getSelectedBlock(), camPos);
+          float speed = (rand()%2000)/1000.0f + 4.0f;
+          drop->setVelocity(camDirection*speed);
+          drop->canPick = false;
+        }
+        Inventory::destroySelectedBlock(false);
+        GUI::refresh();
+      } else {
+        GUI::dropSelected(camPos, camDirection);
+      }
+      qPressed = true;
+    } else if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_RELEASE){
+      qPressed = false;
     }
 
     double mouseX, mouseY;
@@ -204,7 +224,7 @@ int main(){
       if(xAngle<0)  xAngle += M_PI*2;
       if(yAngle<-M_PI/2)  yAngle = -M_PI/2;
 
-      glm::vec3 camDirection(
+      camDirection = glm::vec3(
         cos(yAngle) * sin(xAngle),
         sin(yAngle),
         cos(yAngle) * cos(xAngle)
@@ -388,25 +408,26 @@ int main(){
 
         *chunkPosPtr = chunkPos;
       } else {
+        DroppedBlock::updateAll(deltaTime, camPos);
         ///in GUI
         static bool lMousePressed = false;
         int lMouseState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
         if(lMouseState == GLFW_PRESS && !lMousePressed){
           lMousePressed = true;
-          GUI::mouseButton(glm::vec2(mouseX, 720 - mouseY), false, true);
+          GUI::mouseButton(glm::vec2(mouseX, 720 - mouseY), false, true, camPos, camDirection);
         } else if(lMouseState == GLFW_RELEASE && lMousePressed) {
           lMousePressed = false;
-          GUI::mouseButton(glm::vec2(mouseX, 720 - mouseY), false, false);
+          GUI::mouseButton(glm::vec2(mouseX, 720 - mouseY), false, false, camPos, camDirection);
         }
 
         static bool rMousePressed = false;
         int rMouseState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
         if(rMouseState == GLFW_PRESS && !rMousePressed){
           rMousePressed = true;
-          GUI::mouseButton(glm::vec2(mouseX, 720 - mouseY), true, true);
+          GUI::mouseButton(glm::vec2(mouseX, 720 - mouseY), true, true, camPos, camDirection);
         } else if(rMouseState == GLFW_RELEASE && rMousePressed) {
           rMousePressed = false;
-          GUI::mouseButton(glm::vec2(mouseX, 720 - mouseY), true, false);
+          GUI::mouseButton(glm::vec2(mouseX, 720 - mouseY), true, false, camPos, camDirection);
         }
       }
 

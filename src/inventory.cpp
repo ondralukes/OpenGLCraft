@@ -56,9 +56,15 @@ Inventory::getSelectedBlock(){
   return inventory[GUI::selectedItemIndex].block;
 }
 
+int
+Inventory::getSelectedCount(){
+  return inventory[GUI::selectedItemIndex].count;
+}
+
 void
-Inventory::destroySelectedBlock(){
+Inventory::destroySelectedBlock(bool del){
+  if(getSelectedBlock() == NULL) return;
   inventory[GUI::selectedItemIndex].block->doDrop = false;
-  delete inventory[GUI::selectedItemIndex].block;
+  if(del) delete inventory[GUI::selectedItemIndex].block;
   inventory[GUI::selectedItemIndex].block = NULL;
 }
