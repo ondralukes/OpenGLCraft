@@ -40,6 +40,13 @@ void removeBlock(intvec3 pos, double time, Blocks::Block * usedTool, bool update
   if(ch->blocks[relPos.x][relPos.y][relPos.z]->damageLevel > 8){
     delete ch->blocks[relPos.x][relPos.y][relPos.z];
     ch->blocks[relPos.x][relPos.y][relPos.z] = NULL;
+    if(usedTool != NULL){
+      bool destroyed = usedTool->usedAsTool();
+      if(destroyed){
+        Inventory::destroySelectedBlock();
+        GUI::refresh();
+      }
+    }
   }
   if(update)ch->update();
 }

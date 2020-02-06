@@ -97,13 +97,14 @@ int main(){
 
   SaveManager * saveManager = new SaveManager("saves/default", mvpID);
   Chunk::saveManager = saveManager;
+  SaveManager::main = saveManager;
   saveManager->loadHeader();
   saveManager->loadInventory();
-  Inventory::saveManager = saveManager;
   TextManager * text = new TextManager();
   text->init("textures/font.dds");
   Recipes::init();
   GUI::init(mvpID, wWidth, wHeight);
+  GUI::refresh();
 
   glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_FALSE);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
@@ -261,15 +262,8 @@ int main(){
         if(getLookingAt(camPos,camDirection,&removePos)){
           if(!lMousePressed) lMousePressRemoveBlock = removePos;
           if(removePos == lMousePressRemoveBlock){
-            //Create temporary block
-            block_data blData;
-            blData.type = Inventory::getSelectedBlock();
-            Blocks::Block * usedTool = Blocks::Block::decodeBlock(blData, blockPos, mvpID);
+            Blocks::Block * usedTool = Inventory::getSelectedBlock();
             removeBlock(removePos, time-lMousePressTime, usedTool);
-            if(usedTool != NULL){
-              usedTool->doDrop = false;
-              delete usedTool;
-            }
           }
         }
         lMousePressed = true;
@@ -285,13 +279,16 @@ int main(){
         intvec3 placePos;
         if(getLookingAt(camPos,camDirection,NULL,&placePos)){
           if(placePos.x != blockPos.x || placePos.z != blockPos.z ||(placePos.y != blockPos.y+1 && placePos.y != blockPos.y+2)){
-            Blocks::block_type blType = Inventory::getSelectedBlock();
-            if(blType != Blocks::NONE && Block::Block::canPlace(blType)){
-              Blocks::block_data blData;
-              blData.type = blType;
-              Blocks::Block * block = Blocks::Block::decodeBlock(blData, placePos, mvpID);
-              addBlock(placePos, block);
-              Inventory::remove(GUI::selectedItemIndex);
+            if(Inventory::getSelectedBlock() != NULL){
+              Blocks::Block * block = Blocks::Block::decodeBlock(
+                Inventory::getSelectedBlock()->getBlockData(),
+                placePos,
+                mvpID
+              );
+              if(block != NULL && Block::Block::canPlace(block->getType())){
+                addBlock(placePos, block);
+                Inventory::remove(GUI::selectedItemIndex);
+              }
             }
           }
         }

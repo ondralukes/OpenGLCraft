@@ -1,34 +1,39 @@
 #include "inventory.hpp"
 
 inventory_item Inventory::inventory[8];
-SaveManager * Inventory::saveManager;
 
 void
-Inventory::add(Blocks::block_type type, int count){
+Inventory::add(Blocks::Block * block, int count){
   int emptySlotIndex = -1;
   for(int i = 0;i<8;i++){
-    if(inventory[i].type == type){
-      inventory[i].count += count;
+    if(inventory[i].block == NULL){
+      if(emptySlotIndex == -1) emptySlotIndex = i;
+    } else if(inventory[i].block->getType() == block->getType() && inventory[i].count != block->maxStack){
+      int c = block->maxStack - inventory[i].count;
+      if(c > count) c = count;
+      inventory[i].count += c;
+      if(c < count){
+        add(block, count - c);
+      }
+      SaveManager::main->saveInventory();
       GUI::refresh();
       return;
-    } else if(inventory[i].type == Blocks::NONE){
-      if(emptySlotIndex == -1) emptySlotIndex = i;
     }
   }
   if(emptySlotIndex != -1){
-    inventory[emptySlotIndex].type = type;
+    inventory[emptySlotIndex].block = block;
     inventory[emptySlotIndex].count = count;
   }
   GUI::refresh();
-  saveManager->saveInventory();
+  SaveManager::main->saveInventory();
 }
 
 bool
-Inventory::isPlaceFor(Blocks::block_type type){
+Inventory::isPlaceFor(Blocks::block_data block){
   for(int i = 0;i<8;i++){
-    if(inventory[i].type == type){
+    if(inventory[i].block == NULL){
       return true;
-    } else if(inventory[i].type == Blocks::NONE){
+    } else if(inventory[i].block->getType() == block.type){
       return true;
     }
   }
@@ -39,14 +44,21 @@ void
 Inventory::remove(int index, int count){
   inventory[index].count -= count;
   if(inventory[index].count <= 0){
-    inventory[index].type = Blocks::NONE;
+    inventory[index].block = NULL;
     inventory[index].count = 0;
   }
   GUI::refresh();
-  saveManager->saveInventory();
+  SaveManager::main->saveInventory();
 }
 
-Blocks::block_type
+Blocks::Block *
 Inventory::getSelectedBlock(){
-  return inventory[GUI::selectedItemIndex].type;
+  return inventory[GUI::selectedItemIndex].block;
+}
+
+void
+Inventory::destroySelectedBlock(){
+  inventory[GUI::selectedItemIndex].block->doDrop = false;
+  delete inventory[GUI::selectedItemIndex].block;
+  inventory[GUI::selectedItemIndex].block = NULL;
 }

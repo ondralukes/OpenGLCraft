@@ -7,7 +7,7 @@ namespace Blocks{
 class Wood : public Block {
 public:
   Wood();
-  block_data getBlockData();
+  void load();
 };
 }
 #endif

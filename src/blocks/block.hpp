@@ -6,7 +6,6 @@
 #include "structs.hpp"
 
 namespace Blocks{
-#define BLOCK_DATA_SIZE sizeof(block_type) + sizeof(size_t)
   enum block_type : uint16_t
   {
     NONE = 0,
@@ -28,7 +27,7 @@ namespace Blocks{
 
   struct block_data {
     block_type type;
-    char data[BLOCK_DATA_SIZE];
+    size_t dataPos;
   };
   class Block {
   public:
@@ -37,12 +36,17 @@ namespace Blocks{
     static Block * decodeBlock(block_data data, intvec3 pos, GLuint mvpid);
     static GLuint getTextureFor(block_type type);
     static bool canPlace(block_type type);
+    virtual void save();
+    virtual void load();
+    virtual bool usedAsTool();
+    virtual float getHP();
     GLuint textureID = 100;
     GLuint mvpID;
     int damageLevel = 0;
+    int maxStack = 64;
     intvec3 pos;
-    block_type type;
-    virtual block_data getBlockData() = 0;
+    block_data getBlockData();
+    block_type getType();
     float getHardness(Block * b);
     tool_type toolType = NO_TOOL;
     float toolLevel = 0.0f;
@@ -50,6 +54,7 @@ namespace Blocks{
   protected:
     float hardness;
     float pickaxeEff = 0.0f;
+    block_data data;
   };
 }
 #endif

@@ -3,14 +3,7 @@
 using namespace Blocks;
 
 Stone::Stone() : Block("textures/stone.dds"){
-  type = STONE;
+  data.type = STONE;
   hardness = 0.5f;
   pickaxeEff = 1.0f;
-}
-
-block_data
-Stone::getBlockData(){
-  block_data data;
-  data.type = STONE;
-  return data;
 }

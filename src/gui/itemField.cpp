@@ -43,13 +43,22 @@ ItemField::put(int stackIndex){
     GUI::blocks[contentIndex]  = GUI::blocks[stackIndex];
     GUI::blocks[contentIndex]->setFollowMouse(false);
     GUI::blocks[stackIndex] = NULL;
-  } else if(GUI::blocks[contentIndex]->getBlockType() == GUI::blocks[stackIndex]->getBlockType()){
+  } else if(GUI::blocks[contentIndex]->getBlock()->getType() == GUI::blocks[stackIndex]->getBlock()->getType()){
     //Add to stack
-    int count = GUI::blocks[contentIndex]->getCount() + GUI::blocks[stackIndex]->getCount();
+    int maxStack = GUI::blocks[contentIndex]->getBlock()->maxStack;
+    int countToAdd = maxStack - GUI::blocks[contentIndex]->getCount();
+    if(countToAdd > GUI::blocks[stackIndex]->getCount()) countToAdd = GUI::blocks[stackIndex]->getCount();
+    int count = GUI::blocks[contentIndex]->getCount() + countToAdd;
     GUI::blocks[contentIndex]->setCount(count);
     GUI::blocks[contentIndex]->setFollowMouse(false);
-    delete GUI::blocks[stackIndex];
-    GUI::blocks[stackIndex] = NULL;
+    if(countToAdd == GUI::blocks[stackIndex]->getCount()){
+      delete GUI::blocks[stackIndex];
+      GUI::blocks[stackIndex] = NULL;
+    } else {
+      GUI::blocks[stackIndex]->setCount(GUI::blocks[stackIndex]->getCount() - countToAdd);
+      GUI::blocks[contentIndex]->setFollowMouse(false);
+      GUI::blocks[stackIndex]->setFollowMouse(true);
+    }
   } else {
     //Swap
     ItemStack * tmp = GUI::blocks[contentIndex];

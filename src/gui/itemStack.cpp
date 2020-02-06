@@ -1,13 +1,13 @@
 #include "itemStack.hpp"
 
-ItemStack::ItemStack(GLuint mvpid, GLuint texID, GLuint shaderID, glm::vec4 pos, TextManager * textManager, Blocks::block_type blType)
+ItemStack::ItemStack(GLuint mvpid, GLuint texID, GLuint shaderID, glm::vec4 pos, TextManager * textManager, Blocks::Block * bl)
   : GUIImage(mvpid, texID, shaderID, pos), textManager(textManager){
     setCount(1);
-    block = blType;
+    block = bl;
   }
 
-Blocks::block_type
-ItemStack::getBlockType(){
+Blocks::Block *
+ItemStack::getBlock(){
   return block;
 }
 
@@ -46,5 +46,13 @@ ItemStack::draw(glm::vec2 mousePos){
     setPosition(p);
   }
   GUIImage::draw();
-  textManager->drawText(countText, glm::vec2(pos.x, pos.y), 28.0f);
+  if(count != 1){
+    textManager->drawText(countText, glm::vec2(pos.x, pos.y), 28.0f);
+  }
+  float hp = block->getHP();
+  if(hp != 1.0f){
+    char hpText[32];
+    sprintf(hpText, "%.0f%%", hp*100);
+    textManager->drawText(hpText, glm::vec2(pos.x, pos.y+48.0f), 28.0f);
+  }
 }

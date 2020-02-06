@@ -20,6 +20,7 @@ class Chunk;
 
 class SaveManager{
 public:
+  static SaveManager * main;
   SaveManager(const char * savePath, GLuint mvpid);
   ~SaveManager();
   void saveHeader(BlockArray * chunks);
@@ -34,6 +35,8 @@ public:
   void loadInventory();
   void compress();
   void cleanUp();
+  size_t allocateBlockData(size_t size);
+  FILE * getBlockDatafp();
 private:
   void decompress();
   void write(BlockArray * arr, FILE * fp, int depth, size_t * currentDataPos, intvec3 pos);
@@ -43,10 +46,13 @@ private:
   BlockArray * chunkPositions;
   char headerFilename[1024];
   char dataFilename[1024];
+  char blockDataFilename[1024];
   bool newFile = false;
 
   size_t dataFilePos;
+  size_t blockDataFilePos;
   FILE * datafp;
+  FILE * blockDatafp;
   std::mutex mtx;
 };
 #endif

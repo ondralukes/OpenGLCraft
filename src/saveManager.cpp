@@ -1,5 +1,6 @@
 #include "saveManager.hpp"
 
+SaveManager * SaveManager::main;
 SaveManager::SaveManager(const char * savePath, GLuint mvpid){
   //Leave space for player position and rotation and inventory
   dataFilePos = sizeof(glm::vec3) + sizeof(glm::vec2) + sizeof(inventory_item) * 8;
@@ -8,16 +9,22 @@ SaveManager::SaveManager(const char * savePath, GLuint mvpid){
   strcat(headerFilename,".header");
   strcpy(dataFilename,savePath);
   strcat(dataFilename,".data");
+  strcpy(blockDataFilename,savePath);
+  strcat(blockDataFilename,".blockdata");
   chunkPositions = new BlockArray();
 
   datafp = fopen(dataFilename,"wb+");
+  blockDatafp = fopen(blockDataFilename,"wb+");
 
   char compressedDataFile[1030];
   sprintf(compressedDataFile,"%s.gz", dataFilename);
   char compressedHeaderFile[1030];
   sprintf(compressedHeaderFile,"%s.gz", headerFilename);
+  char compressedBlockDataFile[1030];
+  sprintf(compressedBlockDataFile,"%s.gz", blockDataFilename);
   if(std::ifstream(compressedDataFile).good() &&
-  std::ifstream(compressedDataFile).good())
+    std::ifstream(compressedHeaderFile).good() &&
+    std::ifstream(compressedBlockDataFile).good())
   {
     newFile = false;
     decompress();
@@ -276,6 +283,16 @@ SaveManager::compress(){
   }
   gzclose(gzfp);
 
+  char compressedBlockDataFile[1030];
+  sprintf(compressedBlockDataFile,"%s.gz", blockDataFilename);
+  gzfp = gzopen(compressedBlockDataFile,"wb");
+  fseek(blockDatafp,0,SEEK_SET);
+  while(!feof(blockDatafp)){
+    size_t dataRead = fread(buffer,sizeof(char),1024*1024, blockDatafp);
+    gzwrite(gzfp, buffer, dataRead);
+  }
+  gzclose(gzfp);
+
   char compressedHeaderFile[1030];
   sprintf(compressedHeaderFile,"%s.gz", headerFilename);
   gzfp = gzopen(compressedHeaderFile,"wb");
@@ -305,6 +322,19 @@ SaveManager::decompress(){
   }
   gzclose(gzfp);
 
+  char compressedBlockDataFile[1030];
+  sprintf(compressedBlockDataFile,"%s.gz", blockDataFilename);
+  gzfp = gzopen(compressedBlockDataFile,"rb");
+  fseek(blockDatafp,0,SEEK_SET);
+  size_t sz = 0;
+  while(!gzeof(gzfp)){
+    size_t dataRead = gzread(gzfp, buffer,sizeof(char)*1024*1024);
+    sz += dataRead;
+    fwrite(buffer, sizeof(char), dataRead, blockDatafp);
+  }
+  blockDataFilePos = sz;
+  gzclose(gzfp);
+
   char compressedHeaderFile[1030];
   sprintf(compressedHeaderFile,"%s.gz", headerFilename);
   gzfp = gzopen(compressedHeaderFile,"rb");
@@ -322,15 +352,27 @@ SaveManager::decompress(){
 void
 SaveManager::cleanUp(){
   fclose(datafp);
+  fclose(blockDatafp);
   remove(dataFilename);
   remove(headerFilename);
+  remove(blockDataFilename);
 }
 
 void
 SaveManager::saveInventory(){
   const std::lock_guard<std::mutex> lock(mtx);
   fseek(datafp, sizeof(glm::vec3) + sizeof(glm::vec2), SEEK_SET);
-  fwrite(Inventory::inventory, sizeof(inventory_item), 8, datafp);
+  for(int i =0;i<8;i++){
+    Blocks::block_data data;
+    if(Inventory::inventory[i].block != NULL){
+      data = Inventory::inventory[i].block->getBlockData();
+    } else {
+      data.type = Blocks::NONE;
+      data.dataPos = 0;
+    }
+    fwrite(&data, sizeof(Blocks::block_data), 1, datafp);
+    fwrite(&Inventory::inventory[i].count, sizeof(int), 1, datafp);
+  }
 }
 
 void
@@ -338,5 +380,25 @@ SaveManager::loadInventory(){
   const std::lock_guard<std::mutex> lock(mtx);
   if(newFile) return;
   fseek(datafp, sizeof(glm::vec3) + sizeof(glm::vec2), SEEK_SET);
-  fread(Inventory::inventory, sizeof(inventory_item), 8, datafp);
+  for(int i =0;i<8;i++){
+    Blocks::block_data data;
+    fread(&data, sizeof(Blocks::block_data), 1, datafp);
+    Inventory::inventory[i].block = Blocks::Block::decodeBlock(data, intvec3(0,0,0), 0);
+    if(Inventory::inventory[i].block != NULL) Inventory::inventory[i].block->doDrop = false;
+    fread(&Inventory::inventory[i].count, sizeof(int), 1, datafp);
+  }
+}
+
+size_t
+SaveManager::allocateBlockData(size_t size){
+  if(blockDataFilePos == 0) blockDataFilePos++;
+  size_t pos = blockDataFilePos;
+  fseek(blockDatafp, blockDataFilePos, SEEK_SET);
+  fwrite("b", sizeof(char), size, blockDatafp);
+  return pos;
+}
+
+FILE *
+SaveManager::getBlockDatafp(){
+  return blockDatafp;
 }

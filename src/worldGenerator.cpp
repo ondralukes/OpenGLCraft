@@ -191,7 +191,7 @@ void WorldGenerator::placeTrees(int x, int z, int xSize, int zSize, int count){
     int tz = zPos[i];
     int y;
     if(!getHeightAt(tx, tz, &y))continue;
-    if(getBlock(intvec3(tx,y,tz))->type == Blocks::LEAVES) continue;
+    if(getBlock(intvec3(tx,y,tz))->getType() == Blocks::LEAVES) continue;
     y++;
     int h = rand()%7+2;
     for(int i =0;i<h;i++){

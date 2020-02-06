@@ -8,17 +8,17 @@
 class SaveManager;
 
 typedef struct inventory_item {
-  Blocks::block_type type = Blocks::NONE;
+  Blocks::Block * block;
   int count = 0;
 };
 class Inventory {
 public:
-  static void add(Blocks::block_type type, int count = 1);
+  static void add(Blocks::Block * block, int count = 1);
   static void remove(int index, int count = 1);
-  static bool isPlaceFor(Blocks::block_type type);
-  static Blocks::block_type getSelectedBlock();
+  static bool isPlaceFor(Blocks::block_data block);
+  static Blocks::Block * getSelectedBlock();
+  static void destroySelectedBlock();
   static inventory_item inventory[8];
-  static SaveManager * saveManager;
 };
 
 #endif

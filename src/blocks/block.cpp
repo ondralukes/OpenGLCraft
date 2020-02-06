@@ -7,12 +7,14 @@ using namespace Blocks;
 
 Block::Block(const char * texpath){
   textureID = ResourceManager::getTexture(texpath);
+  data.dataPos = 0;
 }
 
 Block::~Block(){
   if(!doDrop) return;
   glm::vec3 p(pos.x,pos.y,pos.z);
-  DroppedBlock * drop = new DroppedBlock(mvpID, type, p);
+  Block * droppedBlock = decodeBlock(data, pos, mvpID);
+  DroppedBlock * drop = new DroppedBlock(mvpID, droppedBlock, p);
   glm::vec3 vel(
     ((rand()%40) - 20)* 0.01f,
     1.5f,
@@ -54,8 +56,10 @@ Block::decodeBlock(block_data data, intvec3 pos, GLuint mvpid){
       break;
   }
   if(bl!=NULL){
+    bl->data = data;
     bl->pos = pos;
     bl->mvpID = mvpid;
+    bl->load();
   }
   return bl;
 }
@@ -103,4 +107,34 @@ Block::getHardness(Block * b){
     return hardness / (1.0f + b->toolLevel * pickaxeEff);
   }
   return hardness;
+}
+
+block_data
+Block::getBlockData(){
+  return data;
+}
+
+block_type
+Block::getType(){
+  return data.type;
+}
+
+void
+Block::load(){
+
+}
+
+void
+Block::save(){
+
+}
+
+bool
+Block::usedAsTool(){
+  return false;
+}
+
+float
+Block::getHP(){
+  return 1.0f;
 }

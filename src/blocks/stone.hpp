@@ -7,7 +7,6 @@ namespace Blocks{
 class Stone : public Block {
 public:
   Stone();
-  block_data getBlockData();
 };
 }
 #endif

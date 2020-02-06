@@ -7,7 +7,6 @@ namespace Blocks{
 class Stick : public Block {
 public:
   Stick();
-  block_data getBlockData();
 };
 }
 #endif

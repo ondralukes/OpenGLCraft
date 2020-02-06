@@ -7,7 +7,6 @@ namespace Blocks{
 class Dirt : public Block {
 public:
   Dirt();
-  block_data getBlockData();
 };
 }
 #endif

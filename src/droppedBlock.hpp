@@ -13,7 +13,7 @@
 
 class DroppedBlock {
 public:
-  DroppedBlock(GLuint mvpid, Blocks::block_type type, glm::vec3 pos);
+  DroppedBlock(GLuint mvpid, Blocks::Block * bl, glm::vec3 pos);
   ~DroppedBlock();
   void setVelocity(glm::vec3 v);
   static void drawAll(glm::mat4 projection, glm::mat4 view);
@@ -25,7 +25,7 @@ private:
   void update(float deltaTime, glm::vec3 playerPos);
   GLuint mvpID;
   GLuint textureID;
-  Blocks::block_type blockType;
+  Blocks::Block * block;
   GLuint vertexBuffer;
   GLuint uvBuffer;
   glm::vec3 velocity;

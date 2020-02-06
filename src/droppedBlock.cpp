@@ -2,7 +2,7 @@
 
 std::vector<DroppedBlock *> DroppedBlock::droppedBlocks;
 
-DroppedBlock::DroppedBlock(GLuint mvpid, Blocks::block_type type, glm::vec3 pos){
+DroppedBlock::DroppedBlock(GLuint mvpid, Blocks::Block * bl, glm::vec3 pos){
   static const float vertices[]{
     //UP
     -0.15f, 0.15f, 0.15f,
@@ -95,8 +95,8 @@ DroppedBlock::DroppedBlock(GLuint mvpid, Blocks::block_type type, glm::vec3 pos)
 
   modelMatrix = glm::translate(glm::mat4(1.0f),pos);
   mvpID = mvpid;
-  blockType = type;
-  textureID = Blocks::Block::getTextureFor(blockType);
+  block = bl;
+  textureID = Blocks::Block::getTextureFor(block->getType());
   bool gotId = false;
   for(int i =0;i<droppedBlocks.size();i++){
     if(droppedBlocks[i] == NULL){
@@ -132,10 +132,10 @@ DroppedBlock::updateAll(float deltaTime, glm::vec3 playerPos){
 void
 DroppedBlock::update(float deltaTime, glm::vec3 playerPos){
   float distance = glm::length(glm::vec3(modelMatrix[3])-playerPos) ;
-  if(distance < 1.75f && Inventory::isPlaceFor(blockType)){
+  if(distance < 1.75f && Inventory::isPlaceFor(block->getBlockData())){
     velocity = (playerPos - glm::vec3(modelMatrix[3]))*5.0f;
     if(distance < 0.5f){
-      Inventory::add(blockType);
+      Inventory::add(block);
       delete this;
       return;
     }
