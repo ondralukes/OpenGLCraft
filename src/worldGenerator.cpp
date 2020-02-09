@@ -66,6 +66,7 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
         for(int i = 0; i<peaks.size();i++){
           delete peaks[i];
         }
+        addTrees(chunkPos.x, chunkPos.z);
         Chunk::saveHeader();
         for(int y = -8;y<32;y++){
           ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
@@ -87,6 +88,57 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
       }
     }
   }
+}
+
+void
+WorldGenerator::addTrees(int chx, int chz){
+  int tchx = floor(chx/(float)terrainChunkSize);
+  int tchz = floor(chz/(float)terrainChunkSize);
+  std::mt19937 rnd(seed * tchx + tchz + tchx*tchz*43);
+  int count = floor(getRandFloat(&rnd) * 50.0f) + 30.0f;
+  for(int i = 0;i < count; i++){
+    int posX = floor(getRandFloat(&rnd) * terrainChunkSize * CHUNK_SIZE) - chx * CHUNK_SIZE + tchx * CHUNK_SIZE * terrainChunkSize;
+    int posZ = floor(getRandFloat(&rnd) * terrainChunkSize * CHUNK_SIZE) - chz * CHUNK_SIZE + tchz * CHUNK_SIZE * terrainChunkSize;
+    if(posX < 0 || posX >= CHUNK_SIZE) continue;
+    if(posZ < 0 || posZ >= CHUNK_SIZE) continue;
+    posX += chx * CHUNK_SIZE;
+    posZ += chz * CHUNK_SIZE;
+    int h = floor(getRandFloat(&rnd) * 3.0f) + 3;
+    int y;
+    if(!getHeightAt(posX, posZ, &y))continue;
+    if(getBlock(intvec3(posX,y,posZ))->getType() == Blocks::LEAVES) continue;
+    y++;
+    for(int i =0;i<h;i++){
+      intvec3 pos(posX,y+i,posZ);
+      Blocks::Block * bl = new Blocks::Wood();
+      bl->pos = pos;
+      addBlock(pos, bl, false);
+    }
+    intvec3 top(posX,y+h,posZ);
+    for(int dx = -3;dx < 3; dx++){
+      for(int dy = -3;dy < 3; dy++){
+        for(int dz = -3;dz < 3; dz++){
+          if(dx ==0 && dz == 0 && dy<0) continue;
+          if(sqrt(dx*dx+dy*dy+dz*dz) > 3.0) continue;
+          intvec3 pos = top + intvec3(dx,dy,dz);
+          Blocks::Block * bl = new Blocks::Leaves();
+          bl->pos = pos;
+          addBlock(pos, bl, false);
+        }
+      }
+    }
+  }
+}
+
+bool
+WorldGenerator::getHeightAt(int x, int z, int * res){
+  for(int y = 32 * CHUNK_SIZE;y > -30;y--){
+    if(isBlock(intvec3(x,y,z))){
+      *res = y;
+      return true;
+    }
+  }
+  return false;
 }
 
 void
