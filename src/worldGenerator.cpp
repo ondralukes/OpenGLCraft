@@ -33,6 +33,7 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
             getPeaks(tchx + dtchx, tchz + dtchz, &peaks);
           }
         }
+        std::mt19937 rnd(seed * tchx*tchz + tchz);
         for(int dx = 0; dx < CHUNK_SIZE; dx++){
           for(int dz = 0; dz < CHUNK_SIZE; dz++){
             int x = chunkPos.x*CHUNK_SIZE + dx;
@@ -42,14 +43,21 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
               float v = peaks[i]->getValueAt(x ,z);
               val += v;
             }
-
-            for(int y = -7 * CHUNK_SIZE; y < round(val); y++){
+            float dirtLayer = getRandFloat(&rnd) * 7.0f + 5.0f;
+            for(int y = -7 * CHUNK_SIZE; y <= round(val); y++){
             intvec3 pos(
               x,
               y,
               z
             );
-            Blocks::Block * bl = new Blocks::Grass();
+            Blocks::Block * bl;
+            if(y == round(val)){
+              bl = new Blocks::Grass();
+            } else if(round(val) - y < dirtLayer){
+              bl = new Blocks::Dirt();
+            } else {
+                bl = new Blocks::Stone();
+            }
             bl->pos = pos;
             addBlock(pos, bl, false);
           }
@@ -59,7 +67,7 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
           delete peaks[i];
         }
         Chunk::saveHeader();
-        for(int y = -8;y<8;y++){
+        for(int y = -8;y<32;y++){
           ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
           if(ch==NULL){
             Chunk::setChunk(intvec3(chunkPos.x,y,chunkPos.z), new Chunk(intvec3(chunkPos.x,y,chunkPos.z)), false);
@@ -68,7 +76,7 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
           ch->update(true);
         }
       } else {
-        for(int y = -8;y<8;y++){
+        for(int y = -8;y<32;y++){
           ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
           if(ch==NULL){
             Chunk::setChunk(intvec3(chunkPos.x,y,chunkPos.z), new Chunk(intvec3(chunkPos.x,y,chunkPos.z)), false);
@@ -83,13 +91,13 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
 
 void
 WorldGenerator::getPeaks(int tchx, int tchz, std::vector<Peak *> * peaks){
-  std::mt19937 rnd(12395778 * tchx + tchz);
+  std::mt19937 rnd(seed * tchx + tchz);
   int count = floor(getRandFloat(&rnd) * 20.0f);
   for(int i = 0;i < count; i++){
     int posX = floor(getRandFloat(&rnd) * terrainChunkSize * CHUNK_SIZE);
     int posZ = floor(getRandFloat(&rnd) * terrainChunkSize * CHUNK_SIZE);
-    float a = 10.0f/(getRandFloat(&rnd) * 20.0f + 1.31f);
-    float c = (getRandFloat(&rnd) * 22.0f + 5.0f);
+    float a = 10.0f/(getRandFloat(&rnd) * 20.0f + 0.11f);
+    float c = (getRandFloat(&rnd) * 22.0f + 4.0f);
     int absPosX = tchx * terrainChunkSize * CHUNK_SIZE + posX;
     int absPosZ = tchz * terrainChunkSize * CHUNK_SIZE + posZ;
     peaks->push_back(new Peak(absPosX, absPosZ, a, c));

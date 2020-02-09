@@ -32,4 +32,5 @@ class WorldGenerator{
     static void getPeaks(int tchx, int tchz, std::vector<Peak *> * peak);
     static float getRandFloat(std::mt19937 * rnd);
     static const int terrainChunkSize = 4;
+    static const unsigned long seed = 8556756588657454; 
 };
