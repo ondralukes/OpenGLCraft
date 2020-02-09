@@ -33,6 +33,8 @@ public:
   void savePlayerRot(glm::vec2 rot);
   void saveInventory();
   void loadInventory();
+  unsigned long loadSeed();
+  void saveSeed(unsigned long seed);
   void compress();
   void cleanUp();
   size_t allocateBlockData(size_t size);
@@ -47,6 +49,7 @@ private:
   char headerFilename[1024];
   char dataFilename[1024];
   char blockDataFilename[1024];
+  char seedFilename[1024];
   bool newFile = false;
 
   size_t dataFilePos;
