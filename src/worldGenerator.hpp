@@ -27,6 +27,7 @@ using namespace WorldGeneratorUtils;
 class WorldGenerator{
   public:
     static void generate(glm::vec3 pos, float deltaTime);
+    static unsigned long seed;
   private:
     static void generateTerrain(int ** map, int tx, int tz, int xSize, int ySize);
     static void getPeaks(int tchx, int tchz, std::vector<Peak *> * peak);
@@ -34,5 +35,4 @@ class WorldGenerator{
     static bool getHeightAt(int x, int z, int * res);
     static void addTrees(int chx, int chz);
     static const int terrainChunkSize = 4;
-    static const unsigned long seed = 8556756588657454;
 };

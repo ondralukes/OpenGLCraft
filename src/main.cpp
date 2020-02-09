@@ -100,6 +100,7 @@ int main(){
   SaveManager::main = saveManager;
   saveManager->loadHeader();
   saveManager->loadInventory();
+  WorldGenerator::seed = saveManager->loadSeed();
   TextManager * text = new TextManager();
   text->init("textures/font.dds");
   Recipes::init();
@@ -465,15 +466,17 @@ int main(){
         sprintf(textMsg,"blPos: [%d;%d;%d]",blockPos.x,blockPos.y,blockPos.z);
         text->drawText(textMsg,glm::vec2(0,wHeight-5*fontSize), fontSize);
         sprintf(textMsg,"yVel %.2f",yVelocity);
+        text->drawText(textMsg,glm::vec2(0,wHeight-6*fontSize), fontSize);
+        sprintf(textMsg,"seed %lu", WorldGenerator::seed);
         text->drawText(textMsg,glm::vec2(0,wHeight-7*fontSize), fontSize);
         sprintf(textMsg,"gl_vendor: %s", glGetString(GL_VENDOR));
-        text->drawText(textMsg,glm::vec2(0,wHeight-8*fontSize), fontSize);
-        sprintf(textMsg,"gl_renderer: %s", glGetString(GL_RENDERER));
         text->drawText(textMsg,glm::vec2(0,wHeight-9*fontSize), fontSize);
-        sprintf(textMsg,"gl_version: %s", glGetString(GL_VERSION));
+        sprintf(textMsg,"gl_renderer: %s", glGetString(GL_RENDERER));
         text->drawText(textMsg,glm::vec2(0,wHeight-10*fontSize), fontSize);
-        sprintf(textMsg,"glsl_version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+        sprintf(textMsg,"gl_version: %s", glGetString(GL_VERSION));
         text->drawText(textMsg,glm::vec2(0,wHeight-11*fontSize), fontSize);
+        sprintf(textMsg,"glsl_version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+        text->drawText(textMsg,glm::vec2(0,wHeight-12*fontSize), fontSize);
 
         text->drawText("=== Press [G] to hide ===",glm::vec2(0,wHeight-13*fontSize), fontSize);
       }
@@ -487,6 +490,7 @@ int main(){
     saveManager->savePlayerPos(camPos);
     saveManager->savePlayerRot(glm::vec2(xAngle, yAngle));
     saveManager->saveInventory();
+    saveManager->saveSeed(WorldGenerator::seed);
 
     saveManager->compress();
     saveManager->cleanUp();

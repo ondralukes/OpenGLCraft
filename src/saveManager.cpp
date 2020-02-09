@@ -11,6 +11,8 @@ SaveManager::SaveManager(const char * savePath, GLuint mvpid){
   strcat(dataFilename,".data");
   strcpy(blockDataFilename,savePath);
   strcat(blockDataFilename,".blockdata");
+  strcpy(seedFilename,savePath);
+  strcat(seedFilename,".seed");
   chunkPositions = new BlockArray();
 
   datafp = fopen(dataFilename,"wb+");
@@ -386,6 +388,26 @@ SaveManager::loadInventory(){
     Inventory::inventory[i].block = Blocks::Block::decodeBlock(data, intvec3(0,0,0), 0);
     if(Inventory::inventory[i].block != NULL) Inventory::inventory[i].block->doDrop = false;
     fread(&Inventory::inventory[i].count, sizeof(int), 1, datafp);
+  }
+}
+
+void
+SaveManager::saveSeed(unsigned long seed){
+  FILE * fp = fopen(seedFilename, "wb");
+  fwrite(&seed, 1, sizeof(unsigned long), fp);
+  fclose(fp);
+}
+
+unsigned long
+SaveManager::loadSeed(){
+  if(newFile){
+    return rand()*rand()*rand();
+  } else {
+    unsigned long seed;
+    FILE * fp = fopen(seedFilename, "rb");
+    fread(&seed, 1, sizeof(unsigned long), fp);
+    fclose(fp);
+    return seed;
   }
 }
 

@@ -5,6 +5,8 @@
 #include "blockUtils.hpp"
 #include "blocks/blocks.hpp"
 
+unsigned long WorldGenerator::seed = 0;
+
 void
 WorldGenerator::generate(glm::vec3 pos, float deltaTime){
   for(int tx = -3;tx<=3;tx++){
