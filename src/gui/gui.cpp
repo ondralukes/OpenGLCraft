@@ -15,7 +15,7 @@ int GUI::selectedItemIndex = 0;
 bool GUI::inGUI = false;
 int GUI::currentDraggingIndex = -1;
 int GUI::itemFieldsCount = 0;
-ItemField * GUI::itemFields;
+ItemField ** GUI::itemFields;
 int GUI::craftingOutputIndex;
 GUIBase * GUI::currentGUI = NULL;
 
@@ -55,15 +55,16 @@ GUI::init(GLuint mvpid, int ww, int wh){
 void
 GUI::reload(){
   for(int i = 0;i<itemFieldsCount;i++){
-    itemFields[i].removeContentPointer();
+    itemFields[i]->removeContentPointer();
+    delete itemFields[i];
   }
 
   itemFieldsCount = 8;
   if(currentGUI != NULL) itemFieldsCount += currentGUI->itemFieldsCount;
-  itemFields = (ItemField *) malloc(itemFieldsCount * sizeof(ItemField));
+  itemFields = (ItemField **) malloc(itemFieldsCount * sizeof(ItemField));
   for(int i =0;i < 8;i++){
-    itemFields[i] = ItemField(glm::vec2(192 + i*128, 82));
-    itemFields[i].drop = false;
+    itemFields[i] = new ItemField(glm::vec2(192 + i*128, 82));
+    itemFields[i]->drop = false;
   }
   if(currentGUI != NULL){
     currentGUI->generateFields(&itemFields[8]);
@@ -93,7 +94,7 @@ GUI::reload(){
         blocks[i]->setTexture(texture);
       }
       blocks[i]->setCount(Inventory::inventory[i].count);
-      itemFields[i].put(i, false);
+      itemFields[i]->put(i, false);
     } else {
       if(blocks[i] != NULL) delete blocks[i];
       blocks[i] = NULL;
@@ -106,6 +107,9 @@ GUI::dispose(){
   for(int i =0;i<8;i++){
     delete blocks[i];
   }
+  for(int i =0;i<itemFieldsCount;i++){
+    delete itemFields[i];
+  }
   delete crosshair;
   glDeleteBuffers(1, &vertexBuffer);
   glDeleteBuffers(1, &uvBuffer);
@@ -116,7 +120,7 @@ GUI::mouseButton(glm::vec2 mousePos, bool right, bool state, glm::vec3 pos, glm:
   if(!state) return;
   bool drop = true;
   for(int i =0;i<itemFieldsCount;i++){
-    glm::vec2 p = itemFields[i].getPosition();
+    glm::vec2 p = itemFields[i]->getPosition();
     if(mousePos.x > p.x - 64 && mousePos.x < p.x + 64 &&
       mousePos.y > p.y - 64 && mousePos.y < p.y + 64){
         drop = false;
@@ -131,14 +135,14 @@ GUI::mouseButton(glm::vec2 mousePos, bool right, bool state, glm::vec3 pos, glm:
                 p.y + size.y/2.0f
               )
             );
-          itemFields[i].put(currentDraggingIndex, right);
+          itemFields[i]->put(currentDraggingIndex, right);
           if(blocks[currentDraggingIndex] == NULL){
             currentDraggingIndex = -1;
           }
         } else {
           blocks.push_back(NULL);
           currentDraggingIndex = blocks.size()-1;
-          itemFields[i].get(currentDraggingIndex, right);
+          itemFields[i]->get(currentDraggingIndex, right);
         }
         if(blocks[currentDraggingIndex] == NULL || currentDraggingIndex == -1){
           currentDraggingIndex = -1;
@@ -149,13 +153,14 @@ GUI::mouseButton(glm::vec2 mousePos, bool right, bool state, glm::vec3 pos, glm:
         }
       }
     }
-    if(drop) {
+    if(drop && state) {
       dropSelected(pos,dir);
     }
   }
 
 void
 GUI::dropSelected(glm::vec3 pos, glm::vec3 dir){
+  updateInventory();
   if(currentDraggingIndex == -1) return;
   Block * droppedBlock = Blocks::Block::decodeBlock(blocks[currentDraggingIndex]->getBlock()->getBlockData(), intvec3(0,0,0), mvpID);
   for(int i =0;i<blocks[currentDraggingIndex]->getCount();i++){
@@ -172,23 +177,16 @@ GUI::dropSelected(glm::vec3 pos, glm::vec3 dir){
 void
 GUI::leaveGUI(glm::vec3 pos, glm::vec3 dir){
   inGUI = false;
+  delete currentGUI;
+  currentGUI = NULL;
   if(blocks[craftingOutputIndex] != NULL) delete blocks[craftingOutputIndex];
   blocks[craftingOutputIndex] = NULL;
   //Update inventory
-  for(int i =0;i<8;i++){
-    ItemStack * content = itemFields[i].getContent();
-    if(content == NULL)
-    {
-      Inventory::inventory[i].block = NULL;
-    } else {
-      Inventory::inventory[i].block = content->getBlock();
-      Inventory::inventory[i].count = content->getCount();
-    }
-  }
+  updateInventory();
   //Remove blocks at crafting grid and drop them
   for(int i = 0; i < itemFieldsCount;i++){
-    if(!itemFields[i].drop) continue;
-    ItemStack * content = itemFields[i].getContent();
+    if(!itemFields[i]->drop) continue;
+    ItemStack * content = itemFields[i]->getContent();
     if(content != NULL){
       for(int j =0;j<content->getCount();j++){
         DroppedBlock * drop = new DroppedBlock(mvpID, content->getBlock(), pos);
@@ -197,7 +195,7 @@ GUI::leaveGUI(glm::vec3 pos, glm::vec3 dir){
         drop->canPick = false;
       }
     }
-    itemFields[i].empty();
+    itemFields[i]->empty();
   }
 
   //Drop dragged item
@@ -213,84 +211,42 @@ GUI::leaveGUI(glm::vec3 pos, glm::vec3 dir){
     blocks[currentDraggingIndex] = NULL;
   }
   currentDraggingIndex = -1;
+  reload();
+}
+
+void
+GUI::updateInventory(){
+  for(int i =0;i<8;i++){
+    ItemStack * content = itemFields[i]->getContent();
+    if(content == NULL)
+    {
+      Inventory::inventory[i].block = NULL;
+    } else {
+      Inventory::inventory[i].block = content->getBlock();
+      Inventory::inventory[i].count = content->getCount();
+    }
+  }
 }
 
 void
 GUI::enterGUI(){
   inGUI = true;
-
-  //Create item stack for crafting output
-  blocks.push_back(NULL);
-  craftingOutputIndex = blocks.size() - 1;
+  currentGUI = new CraftingGUI();
+  reload();
 }
 
 
 void
 GUI::draw(glm::vec2 mousePos){
   glm::mat4 mvp = glm::mat4(1.0f);
-  glDisable(GL_DEPTH_TEST);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvp[0][0]);
 
-  float bottomMargin = 18.0f;
-  float totalWidth = 1024.0f;
-  float cellWidth = totalWidth/8.0f;
-  float cellHeight = cellWidth;
-  for(int i =0;i<8;i++){
-    float xStart = 128.0f+i*128.0f;
-    float xEnd = 256.0f+i*128.0f;
-    float yStart = bottomMargin;
-    float yEnd =  bottomMargin + cellHeight;
-    float vertices[]{
-       xStart, yStart, 0.0f,
-       xEnd, yEnd, 0.0f,
-       xStart, yEnd, 0.0f,
-       xStart, yStart, 0.0f,
-       xEnd, yStart, 0.0f,
-       xEnd, yEnd, 0.0f,
-    };
-
-    glActiveTexture(GL_TEXTURE0);
-    if(i == selectedItemIndex){
-      glBindTexture(GL_TEXTURE_2D, selectedTextureID);
-      glUniform1i(selectedTextureID, 0);
+  for(int i = 0;i < itemFieldsCount;i++){
+    if(!inGUI && i == selectedItemIndex){
+      itemFields[i]->setTexture(ResourceManager::getTexture("textures/itembarselected.dds", false));
     } else {
-      glBindTexture(GL_TEXTURE_2D, textureID);
-      glUniform1i(textureID, 0);
+        itemFields[i]->setTexture(ResourceManager::getTexture("textures/itembar.dds", false));
     }
-
-    glUseProgram(shaderID);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, 6*sizeof(glm::vec3), vertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glVertexAttribPointer(
-      0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-      3,                  // size
-      GL_FLOAT,           // type
-      GL_FALSE,           // normalized?
-      0,                  // stride
-      (void*)0            // array buffer offset
-    );
-
-    //color
-    glEnableVertexAttribArray(1);
-    glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
-    glVertexAttribPointer(
-      1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
-      2,                                // size
-      GL_FLOAT,                         // type
-      GL_FALSE,                         // normalized?
-      0,                                // stride
-      (void*)0                          // array buffer offset
-    );
-
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
+    itemFields[i]->draw();
   }
 
   if(!inGUI){
@@ -300,7 +256,5 @@ GUI::draw(glm::vec2 mousePos){
   for(int i =0;i<blocks.size();i++){
     if(blocks[i] != NULL) blocks[i]->draw(mousePos);
   }
-  glEnable(GL_DEPTH_TEST);
-  glDepthFunc(GL_LESS);
 
 }

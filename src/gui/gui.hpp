@@ -8,6 +8,7 @@
 #include "resourceManager.hpp"
 #include "guiImage.hpp"
 #include "guiBase.hpp"
+#include "craftingGUI.hpp"
 #include "itemStack.hpp"
 #include "itemField.hpp"
 #include "blocks/block.hpp"
@@ -32,22 +33,23 @@ public:
   static void enterGUI();
   static void dropSelected(glm::vec3 pos, glm::vec3 dir);
   static std::vector<ItemStack *> blocks;
+  static GLuint mvpID;
+  static GLuint shaderID;
+  static TextManager * textManager;
+  static GUIBase * currentGUI;
 private:
+  static void updateInventory();
   static int wWidth;
   static int wHeight;
   static GLuint vertexBuffer;
   static GLuint uvBuffer;
   static GLuint textureID;
   static GLuint selectedTextureID;
-  static GLuint mvpID;
-  static GLuint shaderID;
   static GUIImage * crosshair;
-  static TextManager * textManager;
   static bool inGUI;
   static int itemFieldsCount;
-  static ItemField * itemFields;
+  static ItemField ** itemFields;
   static int currentDraggingIndex;
   static int craftingOutputIndex;
-  static GUIBase * currentGUI;
 };
 #endif
