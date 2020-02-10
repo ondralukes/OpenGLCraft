@@ -13,6 +13,7 @@ namespace GUIUtils {
     void generateFields(ItemField ** f);
   private:
     static void _update();
+    static void _update(int count);
     void update();
     static void _craft(int count);
     void craft(int count);

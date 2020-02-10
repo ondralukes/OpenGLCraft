@@ -11,6 +11,7 @@ CraftingGUI::generateFields(ItemField ** f){
     for(int y = 0;y < 3;y++){
       fields[x+y*3] = new ItemField(glm::vec2(507 + x*133, 227 + (2-y)*133));
       fields[x+y*3]->onPut = &_update;
+      fields[x+y*3]->onGet = &_update;
     }
   }
   fields[9] = new ItemField(glm::vec2(1039, 360));
@@ -20,6 +21,7 @@ CraftingGUI::generateFields(ItemField ** f){
 }
 
 void CraftingGUI::_update(){ ((CraftingGUI *) GUI::currentGUI)->update(); }
+void CraftingGUI::_update(int count){ ((CraftingGUI *) GUI::currentGUI)->update(); }
 void
 CraftingGUI::update(){
   if(fields[9]->getContent() != NULL){

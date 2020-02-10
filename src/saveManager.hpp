@@ -2,6 +2,7 @@
 #define SAVE_MANAGER_HPP
 
 #include <glm/glm.hpp>
+#include <sys/stat.h>
 #include <string.h>
 #include <mutex>
 #include <fstream>
@@ -45,6 +46,9 @@ public:
 private:
   void decompress();
   void write(BlockArray * arr, FILE * fp, int depth, size_t * currentDataPos, intvec3 pos);
+  void filecat(FILE * fp, char * filename);
+  void fileuncat(FILE * fp, char * filename);
+  void fileuncat(FILE * fp, FILE * outfp);
   BlockArray * read(FILE * fp, int depth, intvec3 pos);
 
   GLuint mvpID;
@@ -54,6 +58,7 @@ private:
   char blockDataFilename[1024];
   char seedFilename[1024];
   char droppedBlocksFilename[1024];
+  char targetFilename[1024];
   bool newFile = false;
 
   size_t dataFilePos;

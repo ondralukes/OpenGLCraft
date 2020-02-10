@@ -15,28 +15,21 @@ SaveManager::SaveManager(const char * savePath, GLuint mvpid){
   strcat(seedFilename,".seed");
   strcpy(droppedBlocksFilename,savePath);
   strcat(droppedBlocksFilename,".dropped");
+  strcpy(targetFilename,savePath);
+  strcat(targetFilename,".oglc");
 
   chunkPositions = new BlockArray();
 
   datafp = fopen(dataFilename,"wb+");
   blockDatafp = fopen(blockDataFilename,"wb+");
 
-  char compressedDataFile[1030];
-  sprintf(compressedDataFile,"%s.gz", dataFilename);
-  char compressedHeaderFile[1030];
-  sprintf(compressedHeaderFile,"%s.gz", headerFilename);
-  char compressedBlockDataFile[1030];
-  sprintf(compressedBlockDataFile,"%s.gz", blockDataFilename);
-  if(std::ifstream(compressedDataFile).good() &&
-    std::ifstream(compressedHeaderFile).good() &&
-    std::ifstream(compressedBlockDataFile).good())
+  if(std::ifstream(targetFilename).good())
   {
     newFile = false;
     decompress();
   } else {
     newFile = true;
   }
-
   mvpID = mvpid;
 }
 
@@ -276,39 +269,27 @@ SaveManager::loadPlayerRot(){
 void
 SaveManager::compress(){
   const std::lock_guard<std::mutex> lock(mtx);
-  char * buffer = (char *) malloc(sizeof(char)*1024*1024);
-
-  char compressedDataFile[1030];
-  sprintf(compressedDataFile,"%s.gz", dataFilename);
-  gzFile gzfp = gzopen(compressedDataFile,"wb");
-  fseek(datafp,0,SEEK_SET);
-  while(!feof(datafp)){
-    size_t dataRead = fread(buffer,sizeof(char),1024*1024, datafp);
-    gzwrite(gzfp, buffer, dataRead);
-  }
-  gzclose(gzfp);
-
-  char compressedBlockDataFile[1030];
-  sprintf(compressedBlockDataFile,"%s.gz", blockDataFilename);
-  gzfp = gzopen(compressedBlockDataFile,"wb");
-  fseek(blockDatafp,0,SEEK_SET);
-  while(!feof(blockDatafp)){
-    size_t dataRead = fread(buffer,sizeof(char),1024*1024, blockDatafp);
-    gzwrite(gzfp, buffer, dataRead);
-  }
-  gzclose(gzfp);
-
-  char compressedHeaderFile[1030];
-  sprintf(compressedHeaderFile,"%s.gz", headerFilename);
-  gzfp = gzopen(compressedHeaderFile,"wb");
-  fseek(datafp,0,SEEK_SET);
-  FILE * fp = fopen(headerFilename,"rb");
-  while(!feof(fp)){
-    size_t dataRead = fread(buffer,sizeof(char),1024*1024, fp);
-    gzwrite(gzfp, buffer, dataRead);
-  }
+  fclose(datafp);
+  fclose(blockDatafp);
+  FILE * fp = fopen("tmp", "wb");
+  filecat(fp, dataFilename);
+  filecat(fp, blockDataFilename);
+  filecat(fp, headerFilename);
+  filecat(fp, droppedBlocksFilename);
+  filecat(fp, seedFilename);
   fclose(fp);
+
+  char * buffer = (char *) malloc(1024*1024);
+
+  fp = fopen("tmp", "rb");
+  gzFile gzfp = gzopen(targetFilename,"wb");
+  while(!feof(fp)){
+    size_t dataRead = fread(buffer, 1, sizeof(char)*1024*1024, fp);
+    gzwrite(gzfp, buffer, dataRead);
+  }
   gzclose(gzfp);
+  fclose(fp);
+  remove("tmp");
   free(buffer);
 }
 
@@ -317,50 +298,33 @@ SaveManager::decompress(){
   const std::lock_guard<std::mutex> lock(mtx);
   char * buffer = (char *) malloc(1024*1024);
 
-  char compressedDataFile[1030];
-  sprintf(compressedDataFile,"%s.gz", dataFilename);
-  gzFile gzfp = gzopen(compressedDataFile,"rb");
-  fseek(datafp,0,SEEK_SET);
-  while(!gzeof(gzfp)){
-    size_t dataRead = gzread(gzfp, buffer,sizeof(char)*1024*1024);
-    fwrite(buffer, sizeof(char), dataRead, datafp);
-  }
-  gzclose(gzfp);
-
-  char compressedBlockDataFile[1030];
-  sprintf(compressedBlockDataFile,"%s.gz", blockDataFilename);
-  gzfp = gzopen(compressedBlockDataFile,"rb");
-  fseek(blockDatafp,0,SEEK_SET);
-  size_t sz = 0;
-  while(!gzeof(gzfp)){
-    size_t dataRead = gzread(gzfp, buffer,sizeof(char)*1024*1024);
-    sz += dataRead;
-    fwrite(buffer, sizeof(char), dataRead, blockDatafp);
-  }
-  blockDataFilePos = sz;
-  gzclose(gzfp);
-
-  char compressedHeaderFile[1030];
-  sprintf(compressedHeaderFile,"%s.gz", headerFilename);
-  gzfp = gzopen(compressedHeaderFile,"rb");
-  fseek(datafp,0,SEEK_SET);
-  FILE * fp = fopen(headerFilename,"wb");
+  FILE * fp = fopen("tmp", "wb");
+  gzFile gzfp = gzopen(targetFilename,"rb");
   while(!gzeof(gzfp)){
     size_t dataRead = gzread(gzfp, buffer,sizeof(char)*1024*1024);
     fwrite(buffer, sizeof(char), dataRead, fp);
   }
-  fclose(fp);
   gzclose(gzfp);
+  fclose(fp);
+
+  fp = fopen("tmp", "rb");
+  fileuncat(fp, datafp);
+  fileuncat(fp, blockDatafp);
+  fileuncat(fp, headerFilename);
+  fileuncat(fp, droppedBlocksFilename);
+  fileuncat(fp, seedFilename);
+  fclose(fp);
+  remove("tmp");
   free(buffer);
 }
 
 void
 SaveManager::cleanUp(){
-  fclose(datafp);
-  fclose(blockDatafp);
   remove(dataFilename);
   remove(headerFilename);
   remove(blockDataFilename);
+  remove(seedFilename);
+  remove(droppedBlocksFilename);
 }
 
 void
@@ -459,6 +423,64 @@ SaveManager::loadDroppedBlocks(){
     );
   }
   fclose(fp);
+}
+
+void
+SaveManager::filecat(FILE * fp, char * filename){
+  struct stat s;
+  stat(filename, &s);
+  size_t size = s.st_size;
+  fwrite(&size, 1, sizeof(size_t), fp);
+  char * buffer = (char *) malloc(sizeof(char) * 1024 * 1024);
+  FILE * infp = fopen(filename, "rb");
+  while(!feof(infp)){
+    size_t read = fread(buffer, 1, sizeof(char)*1024*1024, infp);
+    fwrite(buffer, 1, read, fp);
+  }
+  fclose(infp);
+  free(buffer);
+}
+
+void
+SaveManager::fileuncat(FILE * fp, char * filename){
+  size_t sz;
+  fread(&sz, 1, sizeof(size_t), fp);
+  char * buffer = (char *) malloc(sizeof(char) * 1024 * 1024);
+  FILE * outfp = fopen(filename, "wb");
+  while(sz > 0){
+    size_t read = sizeof(char)*1024*1024;
+    if(read > sz) read = sz;
+    fread(buffer, 1, read, fp);
+    fwrite(buffer, 1, read, outfp);
+    if(read >= sz) break;
+    sz -= read;
+    if(feof(fp)){
+      printf("Unexpected end-of-file\n");
+      while(true);
+    }
+  }
+  fclose(outfp);
+  free(buffer);
+}
+
+void
+SaveManager::fileuncat(FILE * fp, FILE * outfp){
+  size_t sz;
+  fread(&sz, 1, sizeof(size_t), fp);
+  char * buffer = (char *) malloc(sizeof(char) * 1024 * 1024);
+  while(sz > 0){
+    size_t read = sizeof(char)*1024*1024;
+    if(read > sz) read = sz;
+    fread(buffer, 1, read, fp);
+    fwrite(buffer, 1, read, outfp);
+    if(read >= sz) break;
+    sz -= read;
+    if(feof(fp)){
+      printf("Unexpected end-of-file\n");
+      while(true);
+    }
+  }
+  free(buffer);
 }
 
 size_t
