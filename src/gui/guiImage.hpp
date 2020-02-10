@@ -16,7 +16,6 @@ public:
   glm::vec4 getPosition();
 protected:
   glm::vec4 pos;
-private:
   GLuint textureID;
   GLuint vertexBuffer;
   GLuint uvBuffer;

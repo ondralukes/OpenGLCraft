@@ -105,7 +105,7 @@ int main(){
   text->init("textures/font.dds");
   Recipes::init();
   GUI::init(mvpID, wWidth, wHeight);
-  GUI::refresh();
+  GUI::reload();
 
   glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_FALSE);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
@@ -197,7 +197,7 @@ int main(){
           drop->canPick = false;
         }
         Inventory::destroySelectedBlock(false);
-        GUI::refresh();
+        GUI::reload();
       } else {
         GUI::dropSelected(camPos, camDirection);
       }
