@@ -16,11 +16,13 @@ public:
   DroppedBlock(GLuint mvpid, Blocks::Block * bl, glm::vec3 pos);
   ~DroppedBlock();
   void setVelocity(glm::vec3 v);
+  Blocks::Block * getBlock();
+  glm::vec3 getPosition();
   static void drawAll(glm::mat4 projection, glm::mat4 view);
   static void updateAll(float deltaTime, glm::vec3 playerPos);
   bool canPick = true;
-private:
   static std::vector<DroppedBlock *> droppedBlocks;
+private:
   int id = 66666;
   void draw(glm::mat4 projection, glm::mat4 view);
   void update(float deltaTime, glm::vec3 playerPos);

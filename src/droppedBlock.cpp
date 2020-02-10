@@ -138,6 +138,16 @@ DroppedBlock::~DroppedBlock(){
   droppedBlocks[id] = NULL;
 }
 
+Blocks::Block *
+DroppedBlock::getBlock(){
+  return block;
+}
+
+glm::vec3
+DroppedBlock::getPosition(){
+  return modelMatrix[3];
+}
+
 void
 DroppedBlock::setVelocity(glm::vec3 v){
   velocity = v;

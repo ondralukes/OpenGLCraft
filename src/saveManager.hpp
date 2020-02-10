@@ -12,6 +12,7 @@
 #include "blockArray.hpp"
 #include "chunk.hpp"
 #include "chunk.hpp"
+#include "droppedBlock.hpp"
 #include "blocks/blocks.hpp"
 
 
@@ -33,6 +34,8 @@ public:
   void savePlayerRot(glm::vec2 rot);
   void saveInventory();
   void loadInventory();
+  void saveDroppedBlocks();
+  void loadDroppedBlocks();
   unsigned long loadSeed();
   void saveSeed(unsigned long seed);
   void compress();
@@ -50,6 +53,7 @@ private:
   char dataFilename[1024];
   char blockDataFilename[1024];
   char seedFilename[1024];
+  char droppedBlocksFilename[1024];
   bool newFile = false;
 
   size_t dataFilePos;

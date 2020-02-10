@@ -106,6 +106,7 @@ int main(){
   Recipes::init();
   GUI::init(mvpID, wWidth, wHeight);
   GUI::reload();
+  saveManager->loadDroppedBlocks();
 
   glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_FALSE);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
@@ -490,6 +491,7 @@ int main(){
     saveManager->savePlayerPos(camPos);
     saveManager->savePlayerRot(glm::vec2(xAngle, yAngle));
     saveManager->saveInventory();
+    saveManager->saveDroppedBlocks();
     saveManager->saveSeed(WorldGenerator::seed);
 
     saveManager->compress();

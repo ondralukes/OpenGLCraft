@@ -13,6 +13,9 @@ SaveManager::SaveManager(const char * savePath, GLuint mvpid){
   strcat(blockDataFilename,".blockdata");
   strcpy(seedFilename,savePath);
   strcat(seedFilename,".seed");
+  strcpy(droppedBlocksFilename,savePath);
+  strcat(droppedBlocksFilename,".dropped");
+
   chunkPositions = new BlockArray();
 
   datafp = fopen(dataFilename,"wb+");
@@ -409,6 +412,53 @@ SaveManager::loadSeed(){
     fclose(fp);
     return seed;
   }
+}
+
+void
+SaveManager::saveDroppedBlocks(){
+  FILE * fp = fopen(droppedBlocksFilename, "wb");
+  size_t count = DroppedBlock::droppedBlocks.size();
+  fwrite(&count, 1, sizeof(size_t), fp);
+  size_t nulls = 0;
+  for(int i =0;i < count;i++){
+    DroppedBlock * bl = DroppedBlock::droppedBlocks[i];
+    if(bl == NULL){
+      nulls++;
+      continue;
+    }
+    Blocks::block_data data = bl->getBlock()->getBlockData();
+    glm::vec3 p = bl->getPosition();
+    fwrite(&p, 1, sizeof(glm::vec3), fp);
+    fwrite(&data, 1, sizeof(Blocks::block_data), fp);
+  }
+  count -= nulls;
+  fseek(fp, 0, SEEK_SET);
+  fwrite(&count, 1, sizeof(size_t), fp);
+  fclose(fp);
+}
+
+void
+SaveManager::loadDroppedBlocks(){
+  if(newFile) return;
+  FILE * fp = fopen(droppedBlocksFilename, "rb");
+  size_t count;
+  fread(&count, 1, sizeof(size_t), fp);
+  for(int i =0;i < count;i++){
+    Blocks::block_data data;
+    glm::vec3 p;
+    fread(&p, 1, sizeof(glm::vec3), fp);
+    fread(&data, 1, sizeof(Blocks::block_data), fp);
+    DroppedBlock * bl = new DroppedBlock(
+      GUI::mvpID,
+      Blocks::Block::decodeBlock(
+        data,
+        intvec3(0,0,0),
+        GUI::mvpID
+      ),
+      p
+    );
+  }
+  fclose(fp);
 }
 
 size_t
