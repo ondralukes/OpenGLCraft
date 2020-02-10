@@ -6,6 +6,11 @@ ItemStack::ItemStack(GLuint mvpid, GLuint texID, GLuint shaderID, glm::vec4 pos,
     block = bl;
   }
 
+ItemStack *
+ItemStack::getClone(){
+  return new ItemStack(mvpID, textureID, shaderID, pos, textManager, block);
+}
+
 Blocks::Block *
 ItemStack::getBlock(){
   return block;

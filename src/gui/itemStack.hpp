@@ -9,6 +9,7 @@
 class ItemStack : public GUIImage{
 public:
   ItemStack(GLuint mvpid, GLuint texID, GLuint shaderID, glm::vec4 pos, TextManager * textManager, Blocks::Block * bl);
+  ItemStack * getClone();
   void setCount(int c);
   void setFollowMouse(bool b);
   bool getFollowMouse();

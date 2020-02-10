@@ -9,11 +9,13 @@
 class ItemField {
 public:
   ItemField(glm::vec2 p);
-  void put(int stackIndex);
+  void put(int stackIndex, bool right);
+  void get(int stackIndex, bool right);
   void empty();
   void removeContentPointer();
   glm::vec2 getPosition();
   ItemStack * getContent();
+  bool drop = true;
 private:
   glm::vec2 pos;
   int contentIndex = -1;

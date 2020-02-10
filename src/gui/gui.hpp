@@ -7,6 +7,7 @@
 
 #include "resourceManager.hpp"
 #include "guiImage.hpp"
+#include "guiBase.hpp"
 #include "itemStack.hpp"
 #include "itemField.hpp"
 #include "blocks/block.hpp"
@@ -15,13 +16,15 @@
 #include "droppedBlock.hpp"
 #include "blocks/recipes.hpp"
 
+using namespace GUIUtils;
+
 class ItemField;
 
 class GUI{
 public:
   static void init(GLuint mvpid, int ww, int wh);
   static void draw(glm::vec2 mousePos);
-  static void refresh();
+  static void reload();
   static int selectedItemIndex;
   static void dispose();
   static void mouseButton(glm::vec2 mousePos, bool right, bool state, glm::vec3 pos, glm::vec3 dir);
@@ -39,13 +42,12 @@ private:
   static GLuint mvpID;
   static GLuint shaderID;
   static GUIImage * crosshair;
-  static GUIImage * craftingGrid;
   static TextManager * textManager;
   static bool inGUI;
+  static int itemFieldsCount;
   static ItemField * itemFields;
   static int currentDraggingIndex;
   static int craftingOutputIndex;
-
-  static void updateCraftingResult();
+  static GUIBase * currentGUI;
 };
 #endif

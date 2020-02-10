@@ -32,7 +32,7 @@ ItemField::empty(){
 }
 
 void
-ItemField::put(int stackIndex){
+ItemField::put(int stackIndex, bool right){
   if(contentIndex == -1){
     GUI::blocks.push_back(NULL);
     contentIndex = GUI::blocks.size()-1;
@@ -40,13 +40,21 @@ ItemField::put(int stackIndex){
 
   if(GUI::blocks[contentIndex] == NULL){
     //Put to empty fiels
-    GUI::blocks[contentIndex]  = GUI::blocks[stackIndex];
-    GUI::blocks[contentIndex]->setFollowMouse(false);
-    GUI::blocks[stackIndex] = NULL;
+    if(right){
+      GUI::blocks[contentIndex] = GUI::blocks[stackIndex]->getClone();
+      GUI::blocks[stackIndex]->setCount(GUI::blocks[stackIndex]->getCount() - 1);
+      GUI::blocks[contentIndex]->setCount(1);
+      GUI::blocks[contentIndex]->setFollowMouse(false);
+    } else {
+      GUI::blocks[contentIndex] = GUI::blocks[stackIndex];
+      GUI::blocks[contentIndex]->setFollowMouse(false);
+      GUI::blocks[stackIndex] = NULL;
+    }
   } else if(GUI::blocks[contentIndex]->getBlock()->getType() == GUI::blocks[stackIndex]->getBlock()->getType()){
     //Add to stack
     int maxStack = GUI::blocks[contentIndex]->getBlock()->maxStack;
     int countToAdd = maxStack - GUI::blocks[contentIndex]->getCount();
+    if(right) countToAdd = 1;
     if(countToAdd > GUI::blocks[stackIndex]->getCount()) countToAdd = GUI::blocks[stackIndex]->getCount();
     int count = GUI::blocks[contentIndex]->getCount() + countToAdd;
     GUI::blocks[contentIndex]->setCount(count);
@@ -66,5 +74,27 @@ ItemField::put(int stackIndex){
     GUI::blocks[stackIndex] = tmp;
     GUI::blocks[contentIndex]->setFollowMouse(false);
     GUI::blocks[stackIndex]->setFollowMouse(true);
+  }
+}
+
+void
+ItemField::get(int stackIndex, bool right){
+  printf("GEt\n");
+  if(right){
+    int count = GUI::blocks[contentIndex]->getCount();
+    GUI::blocks[stackIndex] = GUI::blocks[contentIndex]->getClone();
+    GUI::blocks[contentIndex]->setCount(count/2);
+    if(count/2 == 0){
+      delete GUI::blocks[contentIndex];
+      GUI::blocks[contentIndex] = NULL;
+    }
+    count -= count/2;
+    GUI::blocks[stackIndex]->setCount(count);
+    GUI::blocks[stackIndex]->setFollowMouse(true);
+
+  } else {
+    GUI::blocks[stackIndex] = GUI::blocks[contentIndex];
+    GUI::blocks[stackIndex]->setFollowMouse(true);
+    GUI::blocks[contentIndex] = NULL;
   }
 }

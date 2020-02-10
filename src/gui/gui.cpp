@@ -10,13 +10,14 @@ GLuint GUI::mvpID;
 GLuint GUI::shaderID;
 std::vector<ItemStack *> GUI::blocks;
 GUIImage * GUI::crosshair;
-GUIImage * GUI::craftingGrid;
 TextManager * GUI::textManager;
 int GUI::selectedItemIndex = 0;
 bool GUI::inGUI = false;
 int GUI::currentDraggingIndex = -1;
+int GUI::itemFieldsCount = 0;
 ItemField * GUI::itemFields;
 int GUI::craftingOutputIndex;
+GUIBase * GUI::currentGUI = NULL;
 
 void
 GUI::init(GLuint mvpid, int ww, int wh){
@@ -47,31 +48,27 @@ GUI::init(GLuint mvpid, int ww, int wh){
     shaderID,
     glm::vec4(620, 340, 660, 380)
   );
-  craftingGrid = new GUIImage(
-    mvpID,
-    ResourceManager::getTexture("textures/craftinggrid.dds", false),
-    shaderID,
-    glm::vec4(440, 160, 840, 560)
-  );
 
-  itemFields = (ItemField *) malloc(17 * sizeof(ItemField));
-  for(int x = 0;x < 3;x++){
-    for(int y = 0;y < 3;y++){
-      itemFields[x+y*3] = ItemField(glm::vec2(507 + x*133, 227 + (2-y)*133));
-    }
-  }
-
-  for(int i =0;i< 8;i++){
-    itemFields[9 + i] = ItemField(glm::vec2(192 + i*128, 82));
-  }
-  refresh();
+  reload();
 }
 
 void
-GUI::refresh(){
-  for(int i = 0;i<17;i++){
+GUI::reload(){
+  for(int i = 0;i<itemFieldsCount;i++){
     itemFields[i].removeContentPointer();
   }
+
+  itemFieldsCount = 8;
+  if(currentGUI != NULL) itemFieldsCount += currentGUI->itemFieldsCount;
+  itemFields = (ItemField *) malloc(itemFieldsCount * sizeof(ItemField));
+  for(int i =0;i < 8;i++){
+    itemFields[i] = ItemField(glm::vec2(192 + i*128, 82));
+    itemFields[i].drop = false;
+  }
+  if(currentGUI != NULL){
+    currentGUI->generateFields(&itemFields[8]);
+  }
+
   blocks.clear();
   blocks.resize(8);
   float bottomMargin = 18.0f;
@@ -96,7 +93,7 @@ GUI::refresh(){
         blocks[i]->setTexture(texture);
       }
       blocks[i]->setCount(Inventory::inventory[i].count);
-      itemFields[9+i].put(i);
+      itemFields[i].put(i, false);
     } else {
       if(blocks[i] != NULL) delete blocks[i];
       blocks[i] = NULL;
@@ -117,99 +114,45 @@ GUI::dispose(){
 void
 GUI::mouseButton(glm::vec2 mousePos, bool right, bool state, glm::vec3 pos, glm::vec3 dir){
   if(!state) return;
-  bool drop = false;
-  for(int i =0;i<blocks.size();i++){
-    if(blocks[i] == NULL) continue;
-    glm::vec4 box = blocks[i]->getPosition();
-    if(mousePos.x > box.x && mousePos.x < box.z &&
-      mousePos.y > box.y && mousePos.y < box.w){
+  bool drop = true;
+  for(int i =0;i<itemFieldsCount;i++){
+    glm::vec2 p = itemFields[i].getPosition();
+    if(mousePos.x > p.x - 64 && mousePos.x < p.x + 64 &&
+      mousePos.y > p.y - 64 && mousePos.y < p.y + 64){
+        drop = false;
         if(currentDraggingIndex != -1){
-          drop = true;
-          //Stick to nearest item field
-          float nearestD = 1000.0f;
-          ItemField * bestField;
-          for(int j = 0;j<17;j++){
-            float d = glm::length(mousePos - itemFields[j].getPosition());
-            if(d < nearestD){
-              nearestD = d;
-              bestField = &(itemFields[j]);
-            }
-          }
-          if(nearestD < 128.0f){
-            glm::vec4 pos = blocks[currentDraggingIndex]->getPosition();
+          glm::vec4 pos = blocks[currentDraggingIndex]->getPosition();
             glm::vec2 size = glm::vec2(pos.z - pos.x, pos.w - pos.y);
-            glm::vec2 fpos = bestField->getPosition();
             blocks[currentDraggingIndex]->setPosition(
               glm::vec4(
-                fpos.x - size.x/2.0f,
-                fpos.y - size.y/2.0f,
-                fpos.x + size.x/2.0f,
-                fpos.y + size.y/2.0f
+                p.x - size.x/2.0f,
+                p.y - size.y/2.0f,
+                p.x + size.x/2.0f,
+                p.y + size.y/2.0f
               )
             );
-            bestField->put(currentDraggingIndex);
-            if(blocks[currentDraggingIndex] == NULL){
-               currentDraggingIndex = -1;
-             }
-             drop = false;
-             break;
+          itemFields[i].put(currentDraggingIndex, right);
+          if(blocks[currentDraggingIndex] == NULL){
+            currentDraggingIndex = -1;
           }
         } else {
-          ItemStack * newStack = new ItemStack(mvpID, blocks[i]->getTexture(), shaderID, blocks[i]->getPosition(), textManager, blocks[i]->getBlock());
-          int count = blocks[i]->getCount();
-          if(!right || i == craftingOutputIndex){
-            if(count > blocks[i]->getBlock()->maxStack) count = blocks[i]->getBlock()->maxStack;
-            if(count > blocks[i]->getCount()) count = blocks[i]->getCount();
-            blocks[i]->setCount(blocks[i]->getCount() - count);
-            if(blocks[i]->getCount() == 0){
-              delete blocks[i];
-              blocks[i] = NULL;
-            }
-          } else {
-            blocks[i]->setCount(count/2);
-            if(count/2 == 0){
-              delete blocks[i];
-              blocks[i] = NULL;
-            }
-            count -= count/2;
-          }
-          newStack->setCount(count);
-
-          blocks.push_back(newStack);
-          currentDraggingIndex = blocks.size() - 1;
-          blocks[currentDraggingIndex]->setFollowMouse(true);
-
-          //Remove used items from crating grid
-          if(i == craftingOutputIndex){
-            for(int x = 0;x < 3;x++){
-              for(int y = 0;y < 3;y++){
-                if(itemFields[x+y*3].getContent() != NULL){
-                  int c = itemFields[x+y*3].getContent()->getCount();
-                  if(c < count) count = c;
-                }
-              }
-            }
-            for(int x = 0;x < 3;x++){
-              for(int y = 0;y < 3;y++){
-                if(itemFields[x+y*3].getContent() == NULL) continue;
-                int c = itemFields[x+y*3].getContent()->getCount();
-                itemFields[x+y*3].getContent()->setCount(c-count);
-                if(c - count <= 0){
-                  itemFields[x+y*3].empty();
-                }
-              }
-            }
-          }
+          blocks.push_back(NULL);
+          currentDraggingIndex = blocks.size()-1;
+          itemFields[i].get(currentDraggingIndex, right);
         }
-
-        break;
+        if(blocks[currentDraggingIndex] == NULL || currentDraggingIndex == -1){
+          currentDraggingIndex = -1;
+        } else if(blocks[currentDraggingIndex]->getCount() <= 0){
+          delete blocks[currentDraggingIndex];
+          blocks[currentDraggingIndex] = NULL;
+          currentDraggingIndex = -1;
+        }
       }
+    }
+    if(drop) {
+      dropSelected(pos,dir);
+    }
   }
-  updateCraftingResult();
-  if(drop) {
-    dropSelected(pos,dir);
-  }
-}
 
 void
 GUI::dropSelected(glm::vec3 pos, glm::vec3 dir){
@@ -233,7 +176,7 @@ GUI::leaveGUI(glm::vec3 pos, glm::vec3 dir){
   blocks[craftingOutputIndex] = NULL;
   //Update inventory
   for(int i =0;i<8;i++){
-    ItemStack * content = itemFields[9 + i].getContent();
+    ItemStack * content = itemFields[i].getContent();
     if(content == NULL)
     {
       Inventory::inventory[i].block = NULL;
@@ -243,7 +186,8 @@ GUI::leaveGUI(glm::vec3 pos, glm::vec3 dir){
     }
   }
   //Remove blocks at crafting grid and drop them
-  for(int i = 0; i < 9;i++){
+  for(int i = 0; i < itemFieldsCount;i++){
+    if(!itemFields[i].drop) continue;
     ItemStack * content = itemFields[i].getContent();
     if(content != NULL){
       for(int j =0;j<content->getCount();j++){
@@ -280,79 +224,6 @@ GUI::enterGUI(){
   craftingOutputIndex = blocks.size() - 1;
 }
 
-void
-GUI::updateCraftingResult(){
-  Blocks::block_data input[3][3];
-  int count = 999999999;
-  bool empty = true;
-  for(int x = 0;x < 3;x++){
-    for(int y = 0;y < 3;y++){
-      if(itemFields[x+y*3].getContent() == NULL){
-        input[x][y].type = Blocks::NONE;
-        input[x][y].dataPos = 0;
-      } else {
-        input[x][y] = itemFields[x+y*3].getContent()->getBlock()->getBlockData();
-        int c = itemFields[x+y*3].getContent()->getCount();
-        if(c < count) count = c;
-        empty = false;
-      }
-    }
-  }
-  if(empty) return;
-  //Move to left
-  while(true){
-    bool move = true;
-    for(int y = 0;y<3;y++){
-      if(input[0][y].type != Blocks::NONE) move = false;
-    }
-    if(!move) break;
-    for(int x = 0;x<2;x++){
-      for(int y = 0;y < 3;y++){
-        input[x][y] = input[x+1][y];
-        input[x+1][y].type = Blocks::NONE;
-        input[x+1][y].dataPos = 0;
-      }
-    }
-  }
-
-  //Move to top corner
-  while(true){
-    bool move = true;
-    for(int x = 0;x<3;x++){
-      if(input[x][0].type != Blocks::NONE) move = false;
-    }
-    if(!move) break;
-    for(int y = 0;y<2;y++){
-      for(int x = 0;x < 3;x++){
-        input[x][y] = input[x][y+1];
-        input[x][y+1].type = Blocks::NONE;
-        input[x][y+1].dataPos = 0;
-      }
-    }
-  }
-
-  bool foundRecipe = false;
-  for(int i =0;i<Recipes::recipesCount;i++){
-    if(Recipes::recipes[i].doesMatch(input)){
-      Blocks::Block * block = Blocks::Block::decodeBlock(Recipes::recipes[i].getOutput(), intvec3(0,0,0), 0);
-      block->doDrop = false;
-      blocks[craftingOutputIndex] = new ItemStack(
-        mvpID,
-        Blocks::Block::getTextureFor(block->getType()),
-        shaderID,
-        glm::vec4(1000.6f, 321.6f, 1077.4f, 398.4f),
-        textManager,
-        block);
-      blocks[craftingOutputIndex]->setCount(count *  Recipes::recipes[i].getCount());
-      foundRecipe = true;
-      break;
-    }
-  }
-  if(!foundRecipe){
-    if(blocks[craftingOutputIndex] != NULL) delete blocks[craftingOutputIndex];
-    blocks[craftingOutputIndex] = NULL;
-  }
-}
 
 void
 GUI::draw(glm::vec2 mousePos){
@@ -422,9 +293,7 @@ GUI::draw(glm::vec2 mousePos){
     glDisableVertexAttribArray(1);
   }
 
-  if(inGUI){
-    craftingGrid->draw();
-  } else {
+  if(!inGUI){
     crosshair->draw();
   }
 

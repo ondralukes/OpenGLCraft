@@ -44,7 +44,7 @@ void destroyBlock(intvec3 pos, double time, Blocks::Block * usedTool, bool updat
       bool destroyed = usedTool->usedAsTool();
       if(destroyed){
         Inventory::destroySelectedBlock();
-        GUI::refresh();
+        GUI::reload();
       }
     }
   }

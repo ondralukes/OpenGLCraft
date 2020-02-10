@@ -16,7 +16,7 @@ Inventory::add(Blocks::Block * block, int count){
         add(block, count - c);
       }
       SaveManager::main->saveInventory();
-      GUI::refresh();
+      GUI::reload();
       return;
     }
   }
@@ -24,7 +24,7 @@ Inventory::add(Blocks::Block * block, int count){
     inventory[emptySlotIndex].block = block;
     inventory[emptySlotIndex].count = count;
   }
-  GUI::refresh();
+  GUI::reload();
   SaveManager::main->saveInventory();
 }
 
@@ -49,7 +49,7 @@ Inventory::remove(int index, int count){
     inventory[index].block = NULL;
     inventory[index].count = 0;
   }
-  GUI::refresh();
+  GUI::reload();
   SaveManager::main->saveInventory();
 }
 
