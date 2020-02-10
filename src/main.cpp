@@ -284,13 +284,13 @@ int main(){
           if(!lMousePressed) lMousePressRemoveBlock = removePos;
           if(removePos == lMousePressRemoveBlock){
             Blocks::Block * usedTool = Inventory::getSelectedBlock();
-            removeBlock(removePos, time-lMousePressTime, usedTool);
+            destroyBlock(removePos, time-lMousePressTime, usedTool);
           }
         }
         lMousePressed = true;
       }
       if(lMouseState == GLFW_RELEASE || removePos != lMousePressRemoveBlock){
-        removeBlock(lMousePressRemoveBlock, 0.0f, NULL);
+        destroyBlock(lMousePressRemoveBlock, 0.0f, NULL);
         lMousePressed = false;
       }
 

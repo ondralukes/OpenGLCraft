@@ -30,7 +30,7 @@ public:
   static void setChunk(intvec3 pos, Chunk * ch, bool saveHeaders = true);
   Chunk(intvec3 pos);
   void addBlock(intvec3 pos, Blocks::Block * bl);
-  void removeBlock(intvec3 pos);
+  void destroyBlock(intvec3 pos);
   void draw(glm::mat4 projection, glm::mat4 view);
   void update(bool save = true);
   bool canSeeThrough(intvec3 dir);

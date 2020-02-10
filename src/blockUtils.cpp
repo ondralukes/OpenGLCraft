@@ -21,7 +21,7 @@ bool isBlock(intvec3 pos){
   return ch->blocks[relPos.x][relPos.y][relPos.z] != NULL;
 }
 
-void removeBlock(intvec3 pos, double time, Blocks::Block * usedTool, bool update){
+void destroyBlock(intvec3 pos, double time, Blocks::Block * usedTool, bool update){
   intvec3 chunkPos(
     floor(pos.x/(float)CHUNK_SIZE),
     floor(pos.y/(float)CHUNK_SIZE),
@@ -48,6 +48,26 @@ void removeBlock(intvec3 pos, double time, Blocks::Block * usedTool, bool update
       }
     }
   }
+  if(update)ch->update();
+}
+
+void removeBlock(intvec3 pos, bool update){
+  intvec3 chunkPos(
+    floor(pos.x/(float)CHUNK_SIZE),
+    floor(pos.y/(float)CHUNK_SIZE),
+    floor(pos.z/(float)CHUNK_SIZE)
+  );
+  Chunk * ch = Chunk::getChunk(chunkPos);
+  if(ch == NULL) return;
+  intvec3 relPos(
+    pos.x - chunkPos.x*CHUNK_SIZE,
+    pos.y - chunkPos.y*CHUNK_SIZE,
+    pos.z - chunkPos.z*CHUNK_SIZE
+  );
+  if(ch->blocks[relPos.x][relPos.y][relPos.z] == NULL) return;
+  ch->blocks[relPos.x][relPos.y][relPos.z]->doDrop = false;
+  delete ch->blocks[relPos.x][relPos.y][relPos.z];
+  ch->blocks[relPos.x][relPos.y][relPos.z] = NULL;
   if(update)ch->update();
 }
 

@@ -14,6 +14,7 @@ typedef struct intvec3{
 bool operator==(const intvec3& lhs, const intvec3& rhs);
 bool operator!=(const intvec3& lhs, const intvec3& rhs);
 intvec3 operator+(const intvec3& lhs, const intvec3& rhs);
+intvec3 operator*(const intvec3& lhs, const int& rhs);
 
 struct chunk_render_side{
   chunk_render_side(intvec3 _pos, intvec3 _dir, GLuint texID, int _damageLevel)

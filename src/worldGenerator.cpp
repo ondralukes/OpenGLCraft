@@ -68,6 +68,7 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
         for(int i = 0; i<peaks.size();i++){
           delete peaks[i];
         }
+        addCaves(chunkPos.x, chunkPos.z);
         addTrees(chunkPos.x, chunkPos.z);
         Chunk::saveHeader();
         for(int y = -8;y<32;y++){
@@ -156,6 +157,54 @@ WorldGenerator::getPeaks(int tchx, int tchz, std::vector<Peak *> * peaks){
     int absPosZ = tchz * terrainChunkSize * CHUNK_SIZE + posZ;
     peaks->push_back(new Peak(absPosX, absPosZ, a, c));
   }
+}
+
+void
+WorldGenerator::addCaves(int chx, int chz){
+  for(int dtchx = -1;dtchx <= 1;dtchx++){
+    for(int dtchz = -1;dtchz <= 1;dtchz++){
+      int tchx = floor(chx/(float)terrainChunkSize) + dtchx;
+      int tchz = floor(chz/(float)terrainChunkSize) + dtchz;
+      std::mt19937 rnd(seed * 6 * tchx + tchz * 9);
+      int count = floor(getRandFloat(&rnd) * 10.0f);
+      for(int i =0;i < count;i++){
+        int sphereCount = floor(getRandFloat(&rnd) * 50.0f + 5.0f);
+        int posX = floor(getRandFloat(&rnd) * terrainChunkSize * CHUNK_SIZE) + tchx * terrainChunkSize * CHUNK_SIZE;
+        int posY = floor(getRandFloat(&rnd) * 16 * CHUNK_SIZE - 8 * CHUNK_SIZE);
+        int posZ = floor(getRandFloat(&rnd) * terrainChunkSize * CHUNK_SIZE) + tchz * terrainChunkSize * CHUNK_SIZE;
+        intvec3 pos(posX, posY, posZ);
+        for(int j = 0;j < sphereCount;j++){
+          pos = pos + intvec3(
+            floor(getRandFloat(&rnd) * 6 - 3),
+            floor(getRandFloat(&rnd) * 6 - 3),
+            floor(getRandFloat(&rnd) * 6 - 3)
+          );
+          if(pos.y < -7 * CHUNK_SIZE) pos.y = -7*CHUNK_SIZE;
+          if(!makeHole(pos, chx, chz)) break;
+        }
+
+      }
+    }
+  }
+}
+
+bool
+WorldGenerator::makeHole(intvec3 pos, int chx, int chz){
+  int emptyBlocks = 0;
+  for(int dx = -3;dx <= 3; dx++){
+    for(int dy = -3;dy <= 3; dy++){
+      for(int dz = -3;dz <= 3; dz++){
+        if(sqrt(dx*dx+dy*dy+dz*dz) > 3.0) continue;
+        intvec3 p = pos + intvec3(dx, dy, dz);
+        if(p.x < chx*CHUNK_SIZE || p.x >= (chx+1)*CHUNK_SIZE) continue;
+        if(p.z < chz*CHUNK_SIZE || p.z >= (chz+1)*CHUNK_SIZE) continue;
+        if(!isBlock(p)) emptyBlocks++;
+        removeBlock(p,false);
+      }
+    }
+  }
+
+  return !(emptyBlocks > 200);
 }
 
 float

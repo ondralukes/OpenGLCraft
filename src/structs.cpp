@@ -15,3 +15,11 @@ intvec3 operator+(const intvec3& lhs, const intvec3& rhs){
     lhs.z+rhs.z
   );
 }
+
+intvec3 operator*(const intvec3& lhs, const int& rhs){
+  return intvec3(
+    lhs.x*rhs,
+    lhs.y*rhs,
+    lhs.z*rhs
+  );
+}

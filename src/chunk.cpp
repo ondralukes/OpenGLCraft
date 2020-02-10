@@ -63,7 +63,7 @@ Chunk::addBlock(intvec3 pos, Blocks::Block * bl){
 }
 
 void
-Chunk::removeBlock(intvec3 pos){
+Chunk::destroyBlock(intvec3 pos){
   blocks[pos.x][pos.y][pos.z] = NULL;
 }
 
@@ -141,6 +141,7 @@ Chunk::recalculateSides(){
               }
               if(render){
                 Blocks::Block * bl = blocks[x][y][z];
+                if(bl == NULL) continue;
                 chunk_render_side side(intvec3(x,y,z), dir, bl->textureID, bl->damageLevel);
                 int key = bl->damageLevel==0?bl->textureID +9:bl->damageLevel;
                 if(textureRenderMap.find(key) == textureRenderMap.end()){
