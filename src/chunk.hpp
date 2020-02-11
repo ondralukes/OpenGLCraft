@@ -54,6 +54,13 @@ private:
   GLuint vertexBuffer = -1;
   GLuint uvBuffer = -1;
   std::mutex mtx;
+  static const glm::vec2 upUVs[6];
+  static const glm::vec2 downUVs[6];
+  static const glm::vec2 frontUVs[6];
+  static const glm::vec2 backUVs[6];
+  static const glm::vec2 leftUVs[6];
+  static const glm::vec2 rightUVs[6];
+  static constexpr float margin = 0.005f;
 
   bool posX = true;
   bool negX = true;

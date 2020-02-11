@@ -65,7 +65,7 @@ ItemField::put(int stackIndex, bool right, bool force){
     //Add to stack
     int maxStack = GUI::blocks[contentIndex]->getBlock()->maxStack;
     int countToAdd = maxStack - GUI::blocks[contentIndex]->getCount();
-    if(right) countToAdd = 1;
+    if(right) if(countToAdd>0) countToAdd = 1;
     if(countToAdd > GUI::blocks[stackIndex]->getCount()) countToAdd = GUI::blocks[stackIndex]->getCount();
     int count = GUI::blocks[contentIndex]->getCount() + countToAdd;
     GUI::blocks[contentIndex]->setCount(count);

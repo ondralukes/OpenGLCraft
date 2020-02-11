@@ -8,7 +8,7 @@
 class GUIImage{
 
 public:
-  GUIImage(GLuint mvpid, GLuint texID, GLuint _shaderID, glm::vec4 _pos);
+  GUIImage(GLuint mvpid, GLuint texID, GLuint _shaderID, glm::vec4 _pos, bool isBlock = false);
   virtual void draw();
   void setTexture(GLuint texID);
   GLuint getTexture();

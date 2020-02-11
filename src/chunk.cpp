@@ -6,6 +6,66 @@ GLuint Chunk::mvpID;
 SaveManager * Chunk::saveManager;
 std::mutex Chunk::stmtx;
 
+const glm::vec2 Chunk::upUVs[6] = {
+  glm::vec2( 0.75f + margin, 0.25f - margin),
+  glm::vec2( 0.75f + margin, 0.0f + margin),
+  glm::vec2( 1.0f  - margin, 0.0f + margin),
+
+  glm::vec2( 0.75f + margin, 0.25f - margin),
+  glm::vec2( 1.0f - margin,  0.25f - margin),
+  glm::vec2( 1.0f - margin,  0.0f + margin)
+};
+
+const glm::vec2 Chunk::downUVs[6] = {
+  glm::vec2( 0.25f - margin, 0.75f - margin),
+  glm::vec2( 0.25f - margin, 0.50f + margin),
+  glm::vec2( 0.0f + margin, 0.50f + margin),
+
+  glm::vec2( 0.25f - margin, 0.75f - margin),
+  glm::vec2( 0.0f + margin,  0.75f - margin),
+  glm::vec2( 0.0f + margin,  0.50f + margin)
+};
+
+const glm::vec2 Chunk::frontUVs[6] = {
+  glm::vec2( 0.0f + margin, 0.25f + margin),
+  glm::vec2( 0.0f + margin, 0.50f - margin),
+  glm::vec2( 0.25f - margin, 0.50f - margin),
+
+  glm::vec2( 0.0f + margin, 0.25f + margin),
+  glm::vec2( 0.25f - margin,  0.25f + margin),
+  glm::vec2( 0.25f - margin,  0.50f - margin)
+};
+
+const glm::vec2 Chunk::backUVs[6] = {
+  glm::vec2( 0.75f - margin, 0.25f + margin),
+  glm::vec2( 0.75f - margin, 0.50f - margin),
+  glm::vec2( 0.50f + margin, 0.50f - margin),
+
+  glm::vec2( 0.75f - margin, 0.25f + margin),
+  glm::vec2( 0.50f + margin,  0.25f + margin),
+  glm::vec2( 0.50f + margin,  0.50f - margin)
+};
+
+const glm::vec2 Chunk::leftUVs[6] = {
+  glm::vec2( 0.75f + margin, 0.25f + margin),
+  glm::vec2( 0.75f + margin, 0.50f - margin),
+  glm::vec2( 1.0f - margin, 0.50f - margin),
+
+  glm::vec2( 0.75f + margin, 0.25f + margin),
+  glm::vec2( 1.0f - margin,  0.25f + margin),
+  glm::vec2( 1.0f - margin,  0.50f - margin)
+};
+
+const glm::vec2 Chunk::rightUVs[6] = {
+  glm::vec2( 0.25f + margin, 0.25f + margin),
+  glm::vec2( 0.25f + margin, 0.50f - margin),
+  glm::vec2( 0.50f - margin, 0.50f - margin),
+
+  glm::vec2( 0.25f + margin, 0.25f + margin),
+  glm::vec2( 0.50f - margin,  0.25f + margin),
+  glm::vec2( 0.50f - margin,  0.50f - margin)
+};
+
 Chunk *
 Chunk::getChunk(intvec3 pos){
   BlockArray * yz = (BlockArray *)(chunks->get((long)pos.x));
@@ -218,13 +278,11 @@ Chunk::setGlBuffers(){
       vertices[i*6 + 4] = pos+glm::vec3( 0.5f, side.dir.y*0.5f, 0.5f);
       vertices[i*6 + 5] = pos+glm::vec3( 0.5f, side.dir.y*0.5f,-0.5f);
 
-      UVs[i*6 + 0] = glm::vec2( 0.0f, 1.0f);
-      UVs[i*6 + 1] = glm::vec2( 0.0f, 0.0f);
-      UVs[i*6 + 2] = glm::vec2( 1.0f, 0.0f);
-
-      UVs[i*6 + 3] = glm::vec2( 0.0f, 1.0f);
-      UVs[i*6 + 4] = glm::vec2( 1.0f, 1.0f);
-      UVs[i*6 + 5] = glm::vec2( 1.0f, 0.0f);
+      if(side.dir.y == 1){
+        memcpy(&UVs[i*6], upUVs, 6*sizeof(glm::vec2));
+      } else {
+        memcpy(&UVs[i*6], downUVs, 6*sizeof(glm::vec2));
+      }
     } else if(side.dir.x == 1 || side.dir.x == -1){
       vertices[i*6 + 0] = pos+glm::vec3(side.dir.x*0.5f,-0.5f, 0.5f);
       vertices[i*6 + 1] = pos+glm::vec3(side.dir.x*0.5f,-0.5f,-0.5f);
@@ -234,13 +292,11 @@ Chunk::setGlBuffers(){
       vertices[i*6 + 4] = pos+glm::vec3(side.dir.x*0.5f, 0.5f, 0.5f);
       vertices[i*6 + 5] = pos+glm::vec3(side.dir.x*0.5f, 0.5f,-0.5f);
 
-      UVs[i*6 + 0] = glm::vec2( 0.0f, 1.0f);
-      UVs[i*6 + 1] = glm::vec2( 0.0f, 0.0f);
-      UVs[i*6 + 2] = glm::vec2( 1.0f, 0.0f);
-
-      UVs[i*6 + 3] = glm::vec2( 0.0f, 1.0f);
-      UVs[i*6 + 4] = glm::vec2( 1.0f, 1.0f);
-      UVs[i*6 + 5] = glm::vec2( 1.0f, 0.0f);
+      if(side.dir.x == 1){
+        memcpy(&UVs[i*6], leftUVs, 6*sizeof(glm::vec2));
+      } else {
+        memcpy(&UVs[i*6], rightUVs, 6*sizeof(glm::vec2));
+      }
     } else if(side.dir.z == 1 || side.dir.z == -1){
       vertices[i*6 + 0] = pos+glm::vec3(-0.5f, 0.5f,side.dir.z*0.5f);
       vertices[i*6 + 1] = pos+glm::vec3(-0.5f,-0.5f,side.dir.z*0.5f);
@@ -250,13 +306,11 @@ Chunk::setGlBuffers(){
       vertices[i*6 + 4] = pos+glm::vec3( 0.5f, 0.5f,side.dir.z*0.5f);
       vertices[i*6 + 5] = pos+glm::vec3( 0.5f,-0.5f,side.dir.z*0.5f);
 
-      UVs[i*6 + 0] = glm::vec2( 0.0f, 1.0f);
-      UVs[i*6 + 1] = glm::vec2( 0.0f, 0.0f);
-      UVs[i*6 + 2] = glm::vec2( 1.0f, 0.0f);
-
-      UVs[i*6 + 3] = glm::vec2( 0.0f, 1.0f);
-      UVs[i*6 + 4] = glm::vec2( 1.0f, 1.0f);
-      UVs[i*6 + 5] = glm::vec2( 1.0f, 0.0f);
+      if(side.dir.z == 1){
+        memcpy(&UVs[i*6], frontUVs, 6*sizeof(glm::vec2));
+      } else {
+        memcpy(&UVs[i*6], backUVs, 6*sizeof(glm::vec2));
+      }
     }
   }
   for(int i = 0;i<sidesToRender.size()*6;i++){
@@ -284,8 +338,8 @@ Chunk::draw(glm::mat4 projection, glm::mat4 view){
   glm::mat4 mvp = projection*view*modelMatrix;
   glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvp[0][0]);
 
-
-
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   //vertex
   glEnableVertexAttribArray(0);

@@ -1,7 +1,7 @@
 #include "itemStack.hpp"
 
 ItemStack::ItemStack(GLuint mvpid, GLuint texID, GLuint shaderID, glm::vec4 pos, TextManager * textManager, Blocks::Block * bl)
-  : GUIImage(mvpid, texID, shaderID, pos), textManager(textManager){
+  : GUIImage(mvpid, texID, shaderID, pos, true), textManager(textManager){
     setCount(1);
     block = bl;
   }

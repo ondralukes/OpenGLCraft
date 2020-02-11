@@ -1,6 +1,6 @@
 #include "guiImage.hpp"
 
-GUIImage::GUIImage(GLuint mvpid, GLuint texID, GLuint _shaderID, glm::vec4 _pos){
+GUIImage::GUIImage(GLuint mvpid, GLuint texID, GLuint _shaderID, glm::vec4 _pos, bool isBlock){
   pos = _pos;
 
   const static float UVs[]{
@@ -12,6 +12,15 @@ GUIImage::GUIImage(GLuint mvpid, GLuint texID, GLuint _shaderID, glm::vec4 _pos)
     1.0f, 0.0f
   };
 
+  const static float blockUVs[]{
+    0.0f, 0.75f,
+    0.25f, 0.50f,
+    0.0f, 0.50f,
+    0.0f, 0.75f,
+    0.25f,  0.75f,
+    0.25f,  0.50f
+  };
+
 
   glGenBuffers(1,&vertexBuffer);
 
@@ -20,7 +29,12 @@ GUIImage::GUIImage(GLuint mvpid, GLuint texID, GLuint _shaderID, glm::vec4 _pos)
 
   glGenBuffers(1,&uvBuffer);
   glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(UVs), UVs, GL_STATIC_DRAW);
+  if(isBlock){
+    glBufferData(GL_ARRAY_BUFFER, sizeof(blockUVs), blockUVs, GL_STATIC_DRAW);
+  } else {
+    glBufferData(GL_ARRAY_BUFFER, sizeof(UVs), UVs, GL_STATIC_DRAW);
+  }
+
   textureID = texID;
   mvpID = mvpid;
   shaderID = _shaderID;
