@@ -130,8 +130,6 @@ int main(){
   double maxDrawTime = 0;
   double maxGenTime = 0;
 
-  bool inGUI = false;
-
   glm::mat4 projection;
   glm::mat4 view;
 
@@ -171,16 +169,10 @@ int main(){
 
     static bool ePressed = false;
     if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && !ePressed){
-      inGUI = !inGUI;
-
-      if(inGUI){
-        //Release cursor
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+      GUI::inGUI = !GUI::inGUI;
+      if(GUI::inGUI){
         GUI::enterGUI();
       } else {
-        //Hide cursor
-        glfwSetCursorPos(window, wWidth/2, wHeight/2);
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         GUI::leaveGUI(camPos, camDirection);
       }
       ePressed = true;
@@ -188,9 +180,22 @@ int main(){
       ePressed = false;
     }
 
+    static bool oldInGUI = false;
+    if(GUI::inGUI != oldInGUI){
+      if(GUI::inGUI){
+        //Release cursor
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+      } else {
+        //Hide cursor
+        glfwSetCursorPos(window, wWidth/2, wHeight/2);
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+      }
+      oldInGUI = GUI::inGUI;
+    }
+
     static bool qPressed = false;
     if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS && !qPressed){
-      if(!inGUI && Inventory::getSelectedBlock() != NULL){
+      if(!GUI::inGUI && Inventory::getSelectedBlock() != NULL){
         for(int i = 0;i<Inventory::getSelectedCount();i++){
           DroppedBlock * drop = new DroppedBlock(mvpID, Inventory::getSelectedBlock(), camPos);
           float speed = (rand()%2000)/1000.0f + 4.0f;
@@ -210,7 +215,7 @@ int main(){
     double mouseX, mouseY;
     glfwGetCursorPos(window, &mouseX, &mouseY);
 
-    if(!inGUI){
+    if(!GUI::inGUI){
       glfwSetCursorPos(window, wWidth/2, wHeight/2);
 
       if(xAngle == -10){
@@ -299,17 +304,20 @@ int main(){
       int rMouseState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
       if(rMouseState == GLFW_PRESS&&!rMousePressed){
         intvec3 placePos;
-        if(getLookingAt(camPos,camDirection,NULL,&placePos)){
-          if(placePos.x != blockPos.x || placePos.z != blockPos.z ||(placePos.y != blockPos.y+1 && placePos.y != blockPos.y+2)){
-            if(Inventory::getSelectedBlock() != NULL){
-              Blocks::Block * block = Blocks::Block::decodeBlock(
-                Inventory::getSelectedBlock()->getBlockData(),
-                placePos,
-                mvpID
-              );
-              if(block != NULL && Block::Block::canPlace(block->getType())){
-                addBlock(placePos, block);
-                Inventory::remove(GUI::selectedItemIndex);
+        intvec3 clickedAt;
+        if(getLookingAt(camPos,camDirection,&clickedAt,&placePos)){
+          if(!getBlock(clickedAt)->rightClick()){
+            if(placePos.x != blockPos.x || placePos.z != blockPos.z ||(placePos.y != blockPos.y+1 && placePos.y != blockPos.y+2)){
+              if(Inventory::getSelectedBlock() != NULL){
+                Blocks::Block * block = Blocks::Block::decodeBlock(
+                  Inventory::getSelectedBlock()->getBlockData(),
+                  placePos,
+                  mvpID
+                );
+                if(block != NULL && Block::Block::canPlace(block->getType())){
+                  addBlock(placePos, block);
+                  Inventory::remove(GUI::selectedItemIndex);
+                }
               }
             }
           }
@@ -479,7 +487,10 @@ int main(){
         sprintf(textMsg,"glsl_version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
         text->drawText(textMsg,glm::vec2(0,wHeight-12*fontSize), fontSize);
 
-        text->drawText("=== Press [G] to hide ===",glm::vec2(0,wHeight-13*fontSize), fontSize);
+        sprintf(textMsg,"data_size: %ld, block_data_size: %ld", saveManager->dataFilePos, saveManager->blockDataFilePos);
+        text->drawText(textMsg,glm::vec2(0,wHeight-14*fontSize), fontSize);
+
+        text->drawText("=== Press [G] to hide ===",glm::vec2(0,wHeight-16*fontSize), fontSize);
       }
       // Swap buffers
       glfwSwapBuffers(window);

@@ -66,10 +66,6 @@ GUI::reload(){
     itemFields[i] = new ItemField(glm::vec2(192 + i*128, 82));
     itemFields[i]->drop = false;
   }
-  if(currentGUI != NULL){
-    currentGUI->generateFields(&itemFields[8]);
-  }
-
   blocks.clear();
   blocks.resize(8);
   float bottomMargin = 18.0f;
@@ -88,17 +84,17 @@ GUI::reload(){
     Blocks::Block * block = Inventory::inventory[i].block;
     if(block != NULL){
       GLuint texture = Blocks::Block::getTextureFor(block->getType());
-      if(blocks[i] == NULL){
-        blocks[i] = new ItemStack(mvpID, texture, shaderID, glm::vec4(xStart,yStart,xEnd,yEnd), textManager, block);
-      } else {
-        blocks[i]->setTexture(texture);
-      }
+      if(blocks[i] != NULL) delete blocks[i];
+      blocks[i] = new ItemStack(mvpID, texture, shaderID, glm::vec4(xStart,yStart,xEnd,yEnd), textManager, block);
       blocks[i]->setCount(Inventory::inventory[i].count);
       itemFields[i]->put(i, false);
     } else {
       if(blocks[i] != NULL) delete blocks[i];
       blocks[i] = NULL;
     }
+  }
+  if(currentGUI != NULL){
+    currentGUI->generateFields(&itemFields[8]);
   }
 }
 
@@ -177,6 +173,7 @@ GUI::dropSelected(glm::vec3 pos, glm::vec3 dir){
 void
 GUI::leaveGUI(glm::vec3 pos, glm::vec3 dir){
   inGUI = false;
+  currentGUI->leaveGUI();
   delete currentGUI;
   currentGUI = NULL;
   if(blocks[craftingOutputIndex] != NULL) delete blocks[craftingOutputIndex];
@@ -229,9 +226,13 @@ GUI::updateInventory(){
 }
 
 void
-GUI::enterGUI(){
+GUI::enterGUI(gui_type type, Blocks::Block * bl){
   inGUI = true;
-  currentGUI = new CraftingGUI();
+  if(type == GUI_CRAFTING){
+    currentGUI = new CraftingGUI();
+  } else if (type == GUI_CHEST){
+    currentGUI = new ChestGUI((Blocks::Chest *) bl);
+  }
   reload();
 }
 

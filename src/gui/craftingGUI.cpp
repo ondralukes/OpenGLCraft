@@ -5,6 +5,11 @@ CraftingGUI::CraftingGUI(){
 }
 
 void
+CraftingGUI::leaveGUI(){
+  
+}
+
+void
 CraftingGUI::generateFields(ItemField ** f){
   fields = f;
   for(int x = 0;x < 3;x++){

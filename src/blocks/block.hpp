@@ -47,6 +47,8 @@ namespace Blocks{
     virtual void load();
     virtual bool usedAsTool();
     virtual float getHP();
+    virtual bool rightClick();
+    virtual void destroy();
     GLuint textureID = 100;
     GLuint mvpID;
     int damageLevel = 0;

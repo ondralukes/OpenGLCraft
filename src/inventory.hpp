@@ -8,7 +8,7 @@
 class SaveManager;
 
 typedef struct inventory_item {
-  Blocks::Block * block;
+  Blocks::Block * block = NULL;
   int count = 0;
 };
 class Inventory {

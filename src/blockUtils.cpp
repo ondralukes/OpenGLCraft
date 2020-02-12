@@ -38,6 +38,7 @@ void destroyBlock(intvec3 pos, double time, Blocks::Block * usedTool, bool updat
   float hardness = ch->blocks[relPos.x][relPos.y][relPos.z]->getHardness(usedTool);
   ch->blocks[relPos.x][relPos.y][relPos.z]->damageLevel = floor(time / hardness);
   if(ch->blocks[relPos.x][relPos.y][relPos.z]->damageLevel > 8){
+    ch->blocks[relPos.x][relPos.y][relPos.z]->destroy();
     delete ch->blocks[relPos.x][relPos.y][relPos.z];
     ch->blocks[relPos.x][relPos.y][relPos.z] = NULL;
     if(usedTool != NULL){
@@ -66,6 +67,7 @@ void removeBlock(intvec3 pos, bool update){
   );
   if(ch->blocks[relPos.x][relPos.y][relPos.z] == NULL) return;
   ch->blocks[relPos.x][relPos.y][relPos.z]->doDrop = false;
+  ch->blocks[relPos.x][relPos.y][relPos.z]->destroy();
   delete ch->blocks[relPos.x][relPos.y][relPos.z];
   ch->blocks[relPos.x][relPos.y][relPos.z] = NULL;
   if(update)ch->update();
@@ -106,4 +108,16 @@ Blocks::Block * getBlock(intvec3 pos){
   );
   if(ch->blocks[relPos.x][relPos.y][relPos.z] == NULL) return NULL;
   return ch->blocks[relPos.x][relPos.y][relPos.z];
+}
+
+void
+saveBlock(intvec3 pos){
+  intvec3 chunkPos(
+    floor(pos.x/(float)CHUNK_SIZE),
+    floor(pos.y/(float)CHUNK_SIZE),
+    floor(pos.z/(float)CHUNK_SIZE)
+  );
+  Chunk * ch = Chunk::getChunk(chunkPos);
+  if(ch == NULL) return;
+  SaveManager::main->saveChunk(ch);
 }

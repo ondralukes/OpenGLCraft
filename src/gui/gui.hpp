@@ -9,9 +9,10 @@
 #include "guiImage.hpp"
 #include "guiBase.hpp"
 #include "craftingGUI.hpp"
+#include "chestGUI.hpp"
 #include "itemStack.hpp"
 #include "itemField.hpp"
-#include "blocks/block.hpp"
+#include "blocks/blocks.hpp"
 #include "inventory.hpp"
 #include "text.hpp"
 #include "droppedBlock.hpp"
@@ -20,6 +21,11 @@
 using namespace GUIUtils;
 
 class ItemField;
+
+enum gui_type {
+  GUI_CRAFTING,
+  GUI_CHEST
+};
 
 class GUI{
 public:
@@ -30,13 +36,14 @@ public:
   static void dispose();
   static void mouseButton(glm::vec2 mousePos, bool right, bool state, glm::vec3 pos, glm::vec3 dir);
   static void leaveGUI(glm::vec3 pos, glm::vec3 dir);
-  static void enterGUI();
+  static void enterGUI(gui_type type = GUI_CRAFTING, Blocks::Block * bl = NULL);
   static void dropSelected(glm::vec3 pos, glm::vec3 dir);
   static std::vector<ItemStack *> blocks;
   static GLuint mvpID;
   static GLuint shaderID;
   static TextManager * textManager;
   static GUIBase * currentGUI;
+  static bool inGUI;
 private:
   static void updateInventory();
   static int wWidth;
@@ -46,7 +53,6 @@ private:
   static GLuint textureID;
   static GLuint selectedTextureID;
   static GUIImage * crosshair;
-  static bool inGUI;
   static int itemFieldsCount;
   static ItemField ** itemFields;
   static int currentDraggingIndex;

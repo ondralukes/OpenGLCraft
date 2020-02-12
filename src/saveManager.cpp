@@ -309,7 +309,7 @@ SaveManager::decompress(){
 
   fp = fopen("tmp", "rb");
   fileuncat(fp, datafp);
-  fileuncat(fp, blockDatafp);
+  blockDataFilePos = fileuncat(fp, blockDatafp);
   fileuncat(fp, headerFilename);
   fileuncat(fp, droppedBlocksFilename);
   fileuncat(fp, seedFilename);
@@ -441,10 +441,12 @@ SaveManager::filecat(FILE * fp, char * filename){
   free(buffer);
 }
 
-void
+size_t
 SaveManager::fileuncat(FILE * fp, char * filename){
   size_t sz;
+  size_t res;
   fread(&sz, 1, sizeof(size_t), fp);
+  res=sz;
   char * buffer = (char *) malloc(sizeof(char) * 1024 * 1024);
   FILE * outfp = fopen(filename, "wb");
   while(sz > 0){
@@ -461,12 +463,15 @@ SaveManager::fileuncat(FILE * fp, char * filename){
   }
   fclose(outfp);
   free(buffer);
+  return res;
 }
 
-void
+size_t
 SaveManager::fileuncat(FILE * fp, FILE * outfp){
   size_t sz;
+  size_t res;
   fread(&sz, 1, sizeof(size_t), fp);
+  res=sz;
   char * buffer = (char *) malloc(sizeof(char) * 1024 * 1024);
   while(sz > 0){
     size_t read = sizeof(char)*1024*1024;
@@ -481,6 +486,7 @@ SaveManager::fileuncat(FILE * fp, FILE * outfp){
     }
   }
   free(buffer);
+  return res;
 }
 
 size_t

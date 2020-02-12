@@ -9,6 +9,7 @@ namespace GUIUtils {
   class GUIBase {
   public:
     virtual void generateFields(ItemField ** f) = 0;
+    virtual void leaveGUI() = 0;
     int itemFieldsCount = 0;
   protected:
     ItemField ** fields;

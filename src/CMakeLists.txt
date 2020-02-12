@@ -64,6 +64,7 @@ add_executable(main
 	gui/itemField.cpp
 	gui/guiBase.cpp
 	gui/craftingGUI.cpp
+	gui/chestGUI.cpp
 	text.cpp
 	inventory.cpp
 	droppedBlock.cpp

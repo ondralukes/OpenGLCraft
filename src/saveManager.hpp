@@ -43,12 +43,15 @@ public:
   void cleanUp();
   size_t allocateBlockData(size_t size);
   FILE * getBlockDatafp();
+
+  size_t dataFilePos;
+  size_t blockDataFilePos;
 private:
   void decompress();
   void write(BlockArray * arr, FILE * fp, int depth, size_t * currentDataPos, intvec3 pos);
   void filecat(FILE * fp, char * filename);
-  void fileuncat(FILE * fp, char * filename);
-  void fileuncat(FILE * fp, FILE * outfp);
+  size_t fileuncat(FILE * fp, char * filename);
+  size_t fileuncat(FILE * fp, FILE * outfp);
   BlockArray * read(FILE * fp, int depth, intvec3 pos);
 
   GLuint mvpID;
@@ -61,8 +64,6 @@ private:
   char targetFilename[1024];
   bool newFile = false;
 
-  size_t dataFilePos;
-  size_t blockDataFilePos;
   FILE * datafp;
   FILE * blockDatafp;
   std::mutex mtx;

@@ -74,7 +74,11 @@ Block::decodeBlock(block_data data, intvec3 pos, GLuint mvpid){
     bl->data = data;
     bl->pos = pos;
     bl->mvpID = mvpid;
+
+    //Save the file position
+    size_t pos = ftell(SaveManager::main->getBlockDatafp());
     bl->load();
+    fseek(SaveManager::main->getBlockDatafp(), pos, SEEK_SET);
   }
   return bl;
 }
@@ -175,4 +179,13 @@ Block::usedAsTool(){
 float
 Block::getHP(){
   return 1.0f;
+}
+
+bool
+Block::rightClick(){
+  return false;
+}
+
+void
+Block::destroy(){
 }
