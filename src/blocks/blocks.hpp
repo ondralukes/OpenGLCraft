@@ -12,5 +12,6 @@
 #include "pickaxe.hpp"
 #include "axe.hpp"
 #include "shovel.hpp"
+#include "chest.hpp"
 
 #endif

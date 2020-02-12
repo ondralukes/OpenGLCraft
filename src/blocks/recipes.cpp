@@ -1,6 +1,6 @@
 #include "recipes.hpp"
 
-Recipe Recipes::recipes[7];
+Recipe Recipes::recipes[8];
 
 void
 Recipes::init(){
@@ -72,5 +72,15 @@ Recipes::init(){
       {STICK, NONE , NONE}
     };
     recipes[6] = Recipe(in, STONE_SHOVEL, 1);
+  }
+
+  //Chest recipe
+  {
+    Blocks::block_type in[3][3] = {
+      {WOOD, WOOD, WOOD},
+      {WOOD, NONE, WOOD},
+      {WOOD, WOOD, WOOD}
+    };
+    recipes[7] = Recipe(in, CHEST, 1);
   }
 }

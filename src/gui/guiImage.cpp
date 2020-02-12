@@ -13,12 +13,12 @@ GUIImage::GUIImage(GLuint mvpid, GLuint texID, GLuint _shaderID, glm::vec4 _pos,
   };
 
   const static float blockUVs[]{
-    0.0f, 0.75f,
-    0.25f, 0.50f,
-    0.0f, 0.50f,
-    0.0f, 0.75f,
-    0.25f,  0.75f,
-    0.25f,  0.50f
+    0.75f, 1.0f,
+    1.0f, 0.75f,
+    0.75f, 0.75f,
+    0.75f, 1.0f,
+    1.0f,  1.0f,
+    1.0f,  0.75f
   };
 
 

@@ -8,8 +8,8 @@ using namespace Blocks;
 
 class Recipes {
 public:
-  static const int recipesCount = 7;
-  static Recipe recipes[7];
+  static const int recipesCount = 8;
+  static Recipe recipes[8];
   static void init();
 };
 

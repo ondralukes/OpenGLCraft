@@ -63,6 +63,9 @@ Block::decodeBlock(block_data data, intvec3 pos, GLuint mvpid){
     case STONE_SHOVEL:
       bl = (Block *)new StoneShovel();
       break;
+    case CHEST:
+      bl = (Block *)new Chest();
+      break;
     default:
       bl = NULL;
       break;
@@ -113,6 +116,9 @@ Block::getTextureFor(block_type type){
   }
   if(type == STONE_SHOVEL){
     return ResourceManager::getTexture("textures/stoneShovel.dds");
+  }
+  if(type == CHEST){
+    return ResourceManager::getTexture("textures/chest.dds");
   }
   printf("No texture for block!\n");
 }

@@ -70,19 +70,19 @@ DroppedBlock::DroppedBlock(GLuint mvpid, Blocks::Block * bl, glm::vec3 pos){
     0.0f,  0.75f,
     0.0f,  0.50f,
 
-    0.25f, 0.25f,
-    0.25f, 0.50f,
     0.50f, 0.50f,
+    0.25f, 0.50f,
     0.25f, 0.25f,
-    0.50f,  0.25f,
+    0.50f, 0.25f,
     0.50f,  0.50f,
+    0.25f,  0.50f,
 
-    0.75f, 0.25f,
-    0.75f, 0.50f,
-    1.0f, 0.50f,
-    0.75f, 0.25f,
-    1.0f,  0.25f,
-    1.0f,  0.50f,
+     1.0f, 0.25f,
+     0.75f, 0.25f,
+     0.75f, 0.50f,
+     1.0f, 0.25f,
+     1.0f,  0.50f,
+     0.75f,  0.50,
 
     0.0f, 0.25f,
     0.0f, 0.50f,
@@ -98,12 +98,12 @@ DroppedBlock::DroppedBlock(GLuint mvpid, Blocks::Block * bl, glm::vec3 pos){
     0.50f,  0.25f,
     0.50f,  0.50f,
 
-    0.25f, 0.75f,
-    0.0f, 0.75f,
-    0.0f, 0.50f,
-    0.25f, 0.75f,
-    0.25f,  0.50f,
-    0.0f,  0.50f
+    1.0f, 1.0f,
+    0.75f, 1.0f,
+    0.75f, 0.75f,
+    1.0f, 1.0f,
+    1.0f,  0.75f,
+    0.75f,  0.75f
   };
   glGenBuffers(1,&vertexBuffer);
   glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);

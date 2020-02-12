@@ -20,7 +20,8 @@ namespace Blocks{
     WOODEN_AXE = 9,
     STONE_AXE = 10,
     WOODEN_SHOVEL = 11,
-    STONE_SHOVEL = 12
+    STONE_SHOVEL = 12,
+    CHEST = 13
   };
 
   enum tool_type : uint16_t
