@@ -28,6 +28,7 @@ SaveManager::SaveManager(const char * savePath, GLuint mvpid){
     newFile = false;
     decompress();
   } else {
+    blockDataFilePos = 0;
     newFile = true;
   }
   mvpID = mvpid;
