@@ -71,7 +71,7 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
         addCaves(chunkPos.x, chunkPos.z);
         addTrees(chunkPos.x, chunkPos.z);
         Chunk::saveHeader();
-        for(int y = -8;y<32;y++){
+        for(int y = 31;y>=-8;y--){
           ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
           if(ch==NULL){
             Chunk::setChunk(intvec3(chunkPos.x,y,chunkPos.z), new Chunk(intvec3(chunkPos.x,y,chunkPos.z)), false);
@@ -79,14 +79,24 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
           }
           ch->update(true);
         }
+          for(int y = 31;y>=-8;y--){
+            if(ch != NULL){
+              ch->lightInited = false;
+            }
+          }
       } else {
-        for(int y = -8;y<32;y++){
+        for(int y = 31;y>=-8;y--){
           ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
           if(ch==NULL){
             Chunk::setChunk(intvec3(chunkPos.x,y,chunkPos.z), new Chunk(intvec3(chunkPos.x,y,chunkPos.z)), false);
             ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
           }
           ch->update(false);
+        }
+        for(int y = 31;y>=-8;y--){
+          if(ch != NULL){
+            ch->lightInited = false;
+          }
         }
       }
     }

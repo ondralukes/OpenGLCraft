@@ -17,11 +17,12 @@ intvec3 operator+(const intvec3& lhs, const intvec3& rhs);
 intvec3 operator*(const intvec3& lhs, const int& rhs);
 
 struct chunk_render_side{
-  chunk_render_side(intvec3 _pos, intvec3 _dir, GLuint texID, int _damageLevel)
-    : pos(_pos), dir(_dir), textureID(texID), damageLevel(_damageLevel){};
+  chunk_render_side(intvec3 _pos, intvec3 _dir, GLuint texID, int _damageLevel, float _light)
+    : pos(_pos), dir(_dir), textureID(texID), damageLevel(_damageLevel), light(_light){};
   intvec3 pos;
   intvec3 dir;
   GLuint textureID;
   int damageLevel = 0;
+  float light = 1.0f;
 };
 #endif

@@ -9,6 +9,7 @@ void destroyBlock(intvec3 pos, double time, Blocks::Block * usedTool, bool updat
 void addBlock(intvec3 pos, Blocks::Block * bl, bool update = true);
 void removeBlock(intvec3 pos, bool update = true);
 void saveBlock(intvec3 pos);
+int getUnderSky(int x, int z);
 Blocks::Block * getBlock(intvec3 pos);
 
 #endif

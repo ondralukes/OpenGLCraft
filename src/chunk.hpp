@@ -3,6 +3,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
+#include <atomic>
+#include <memory>
 #include <map>
 #include <mutex>
 #include <cstdio>
@@ -20,6 +22,12 @@ class SaveManager;
 
 #define CHUNK_SIZE 8
 
+struct light_block{
+  float value = 0.0f;
+  bool isSource = false;
+  light_block * dependsOn = NULL;
+};
+
 class Chunk{
 public:
   static GLuint mvpID;
@@ -35,10 +43,19 @@ public:
   void update(bool save = true);
   bool canSeeThrough(intvec3 dir);
   void recalculate();
+  void updateLight(bool rec = true);
+  int flowLight(int depth, bool rec);
+  void initLight();
+  light_block getLight(intvec3 p);
+  static void removeLightBlockedBy(intvec3 p);
+  bool isEmpty = true;
   bool isLoaded = false;
+  bool lightInited = false;
+  std::atomic<bool> isSafe;
   bool wasRecalculated = true;
   bool shouldRecalculate = true;
   Blocks::Block * blocks[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
+  light_block light[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
 
   //Used only in one chunk per terrain part
   bool terrainGenerated = false;
@@ -53,6 +70,7 @@ private:
   glm::mat4 modelMatrix;
   GLuint vertexBuffer = -1;
   GLuint uvBuffer = -1;
+  GLuint lightBuffer = -1;
   std::mutex mtx;
   static const glm::vec2 upUVs[6];
   static const glm::vec2 downUVs[6];
