@@ -419,6 +419,8 @@ Chunk::draw(glm::mat4 projection, glm::mat4 view){
 
       glUniform1i(3, 0);
       glUniform1i(4, 1);
+      //Turn on light
+      glUniform1i(6, 1);
       if(sidesToRender[i].damageLevel > 0){
         //Turn on mask
         glUniform1i(5, 1);
@@ -440,6 +442,8 @@ Chunk::draw(glm::mat4 projection, glm::mat4 view){
 
   //Turn off mask
   glUniform1i(5, 0);
+  //Turn off light
+  glUniform1i(6, 0);
 }
 
 void
