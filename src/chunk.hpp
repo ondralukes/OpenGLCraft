@@ -44,7 +44,7 @@ public:
   bool canSeeThrough(intvec3 dir);
   void recalculate();
   void updateLight(bool rec = true);
-  int flowLight(int depth, bool rec);
+  int flowLight(int depth, bool rec, bool init);
   void initLight();
   light_block getLight(intvec3 p);
   static void removeLightBlockedBy(intvec3 p);

@@ -445,14 +445,16 @@ Chunk::draw(glm::mat4 projection, glm::mat4 view){
 void
 Chunk::updateLight(bool rec){
   const std::lock_guard<std::mutex> lock(mtx);
-  initLight();
+  //initLight();
 
 
 
   int c;
   int s = 3;
+  bool init = true;
   do{
-    c=flowLight(1, rec);
+    c=flowLight(rec?1:4, rec, init);
+    init = false;
     if(c == 0) s--;
   } while(s > 0);
   lightInited = true;
@@ -466,12 +468,20 @@ Chunk::initLight(){
   for(int x = 0; x < CHUNK_SIZE; x++){
     for(int y = 0; y < CHUNK_SIZE; y++){
       for(int z = 0; z < CHUNK_SIZE; z++){
-        light_block lbl = light[x][y][z];
-        if(lbl.dependsOn == NULL){
-          light[x][y][z] = light_block();
-        } else if(lbl.dependsOn->dependsOn == NULL && !lbl.isSource){
-          light[x][y][z] = light_block();
-        }
+        light_block * lbl = &light[x][y][z];
+        // if(lbl->dependsOn == NULL){
+          if(!lbl->isSource)light[x][y][z] = light_block();
+        // } else {
+        //   light_block * dep = lbl;
+        //   while(true){
+        //     dep = dep->dependsOn;
+        //     if(dep == NULL) break;
+        //     if(dep->isSource) break;
+        //   }
+        //   if(dep == NULL){
+        //     light[x][y][z] = light_block();
+        //   }
+        // }
       }
     }
   }
@@ -485,7 +495,6 @@ Chunk::initLight(){
           int miny = y - pos.y*CHUNK_SIZE;
           if(miny < 0) miny = 0;
           for(int ry = miny; ry<CHUNK_SIZE;ry++){
-            light[x][ry][z].isSource = true;
             light[x][ry][z].value = 1.0f;
           }
         }
@@ -494,8 +503,9 @@ Chunk::initLight(){
 }
 
 int
-Chunk::flowLight(int depth, bool rec){
+Chunk::flowLight(int depth, bool rec, bool init){
   if(depth == -1) return 0;
+  if(init) initLight();
   int c = 0;
   bool changed[6];
   for(int x = 0; x < CHUNK_SIZE; x++){
@@ -546,7 +556,7 @@ Chunk::flowLight(int depth, bool rec){
       if(changed[r*2+(d-1)/2]){
         Chunk * ch = Chunk::getChunk(pos + p);
         if(ch != NULL){
-          c += ch->flowLight(depth - 1, rec);
+          c += ch->flowLight(depth - 1, rec, init);
         }
       }
     }
@@ -572,10 +582,8 @@ Chunk::removeLightBlockedBy(intvec3 p){
       y - chunkPos.y*CHUNK_SIZE,
       p.z - chunkPos.z*CHUNK_SIZE
     );
-    if(ch->light[rp.x][rp.y][rp.z].isSource){
       ch->light[rp.x][rp.y][rp.z] = light_block();
-      ch->shouldRecalculate = true;
-    }
+      ch->lightInited = false;
   }
 }
 
