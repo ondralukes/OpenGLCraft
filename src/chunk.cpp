@@ -454,11 +454,10 @@ Chunk::updateLight(bool rec){
 
 
   int c;
-  int s = 3;
-  bool init = true;
+  int s = 1;
+  flowLight(rec?1:4, rec, true);
   do{
-    c=flowLight(rec?1:4, rec, init);
-    init = false;
+    c=flowLight(rec?1:4, rec, false);
     if(c == 0) s--;
   } while(s > 0);
   lightInited = true;
@@ -515,6 +514,7 @@ Chunk::flowLight(int depth, bool rec, bool init){
   for(int x = 0; x < CHUNK_SIZE; x++){
     for(int y = 0; y < CHUNK_SIZE; y++){
       for(int z = 0; z < CHUNK_SIZE; z++){
+        if(blocks[x][y][z] != NULL) continue;
         light_block lbl = light[x][y][z];
         for(int d =-1;d<=1;d+=2){
           for(int r = 0;r<3;r++){
@@ -535,12 +535,12 @@ Chunk::flowLight(int depth, bool rec, bool init){
                lbl.value = adjl;
                lbl.dependsOn = &adjlbl;
                c++;
-               if(x == 0 && p.x != x - 1) changed[0] = true;
-               if(x == CHUNK_SIZE - 1  && p.x != x + 1) changed[1] = true;
-               if(y == 0 && p.y != y - 1) changed[2] = true;
-               if(y == CHUNK_SIZE - 1 && p.y != y + 1) changed[3] = true;
-               if(z == 0 && p.z != z - 1) changed[4] = true;
-               if(z == CHUNK_SIZE - 1 && p.z != z + 1) changed[5] = true;
+               if(x == 0 /*&& p.x != x - 1*/) changed[0] = true;
+               if(x == CHUNK_SIZE - 1  /*&& p.x != x + 1 */) changed[1] = true;
+               if(y == 0 /*&& p.y != y - 1*/) changed[2] = true;
+               if(y == CHUNK_SIZE - 1 /*&& p.y != y + 1*/) changed[3] = true;
+               if(z == 0 /*&& p.z != z - 1*/) changed[4] = true;
+               if(z == CHUNK_SIZE - 1 /*&& p.z != z + 1*/) changed[5] = true;
              }
           }
         }
@@ -550,6 +550,7 @@ Chunk::flowLight(int depth, bool rec, bool init){
     }
   }
   if(rec){
+
   for(int d =-1;d<=1;d+=2){
     for(int r = 0;r<3;r++){
       intvec3 p(
@@ -557,14 +558,15 @@ Chunk::flowLight(int depth, bool rec, bool init){
         r==1?d:0,
         r==2?d:0
       );
-      if(changed[r*2+(d-1)/2]){
+      //if(changed[r*2+(d-1)/2]){
         Chunk * ch = Chunk::getChunk(pos + p);
         if(ch != NULL){
           c += ch->flowLight(depth - 1, rec, init);
         }
-      }
+      //}
     }
   }
+  if(c>0) flowLight(depth-1,rec,init);
 }
   if(c>0) shouldRecalculate = true;
   return c;
