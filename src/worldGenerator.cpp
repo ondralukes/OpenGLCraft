@@ -71,7 +71,7 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
         addCaves(chunkPos.x, chunkPos.z);
         addTrees(chunkPos.x, chunkPos.z);
         Chunk::saveHeader();
-        for(int y = -8;y<32;y++){
+        for(int y = 31;y>=-8;y--){
           ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
           if(ch==NULL){
             Chunk::setChunk(intvec3(chunkPos.x,y,chunkPos.z), new Chunk(intvec3(chunkPos.x,y,chunkPos.z)), false);
@@ -80,7 +80,7 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
           ch->update(true);
         }
       } else {
-        for(int y = -8;y<32;y++){
+        for(int y = 31;y>=-8;y--){
           ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
           if(ch==NULL){
             Chunk::setChunk(intvec3(chunkPos.x,y,chunkPos.z), new Chunk(intvec3(chunkPos.x,y,chunkPos.z)), false);
@@ -166,7 +166,7 @@ WorldGenerator::addCaves(int chx, int chz){
       int tchx = floor(chx/(float)terrainChunkSize) + dtchx;
       int tchz = floor(chz/(float)terrainChunkSize) + dtchz;
       std::mt19937 rnd(seed * 6 * tchx + tchz * 9);
-      int count = floor(getRandFloat(&rnd) * 10.0f);
+      int count = floor(getRandFloat(&rnd) * 20.0f);
       for(int i =0;i < count;i++){
         int sphereCount = floor(getRandFloat(&rnd) * 50.0f + 5.0f);
         int posX = floor(getRandFloat(&rnd) * terrainChunkSize * CHUNK_SIZE) + tchx * terrainChunkSize * CHUNK_SIZE;

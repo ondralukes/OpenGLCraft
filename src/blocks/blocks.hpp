@@ -13,5 +13,6 @@
 #include "axe.hpp"
 #include "shovel.hpp"
 #include "chest.hpp"
+#include "fire.hpp"
 
 #endif

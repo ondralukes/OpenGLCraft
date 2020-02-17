@@ -66,6 +66,9 @@ Block::decodeBlock(block_data data, intvec3 pos, GLuint mvpid){
     case CHEST:
       bl = (Block *)new Chest();
       break;
+    case FIRE:
+      bl = (Block *)new Fire();
+      break;
     default:
       bl = NULL;
       break;
@@ -123,6 +126,9 @@ Block::getTextureFor(block_type type){
   }
   if(type == CHEST){
     return ResourceManager::getTexture("textures/chest.dds");
+  }
+  if(type == FIRE){
+    return ResourceManager::getTexture("textures/fire.dds");
   }
   printf("No texture for block!\n");
 }

@@ -36,6 +36,8 @@ int drawChunks(glm::mat4 projection, glm::mat4 view, intvec3 chunkPos);
 void scrollCallback(GLFWwindow* window, double x, double y);
 void recalcThWork(intvec3 * chunkPos);
 
+int lightToken = 123;
+
 int main(){
   srand(time(NULL));
   glewExperimental = true; // Needed for core profile
@@ -195,6 +197,7 @@ int main(){
 
     static bool qPressed = false;
     if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS && !qPressed){
+      lightToken = rand();
       if(!GUI::inGUI && Inventory::getSelectedBlock() != NULL){
         for(int i = 0;i<Inventory::getSelectedCount();i++){
           DroppedBlock * drop = new DroppedBlock(mvpID, Inventory::getSelectedBlock(), camPos);
@@ -295,8 +298,8 @@ int main(){
         }
         lMousePressed = true;
       }
-      if(lMouseState == GLFW_RELEASE || removePos != lMousePressRemoveBlock){
-        destroyBlock(lMousePressRemoveBlock, 0.0f, NULL);
+      if((lMouseState == GLFW_RELEASE && lMousePressed) || removePos != lMousePressRemoveBlock){
+        destroyBlock(lMousePressRemoveBlock, 0.0f, NULL, lMousePressed);
         lMousePressed = false;
       }
 
@@ -532,7 +535,7 @@ int main(){
           );
           Chunk * ch = Chunk::getChunk(chP);
           if(ch != NULL){
-            if(ch->doDraw != 0){
+            if(ch->doDraw != 0 && ch->isSafe){
               ch->draw(projection,view);
               chunksDrawed++;
             }
@@ -549,6 +552,7 @@ int main(){
   }
 
   void recalcThWork(intvec3 * chunkPos){
+    int i = 0;
     while(true){
       for(int x =-8;x<8;x++){
         for(int y =-4;y<4;y++){
@@ -563,9 +567,13 @@ int main(){
               if(ch->shouldRecalculate){
                 ch->recalculate();
               }
+              if(ch->relight || (ch->noLight && i > 3)){
+                ch->updateLight();
+              }
             }
           }
         }
       }
+      i++;
     }
   }

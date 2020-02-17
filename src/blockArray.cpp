@@ -9,7 +9,7 @@ BlockArray::BlockArray(){
 
 void *
 BlockArray::get(long index){
-  const std::lock_guard<std::mutex> lock(mtx);
+  //const std::lock_guard<std::mutex> lock(mtx);
   if(index >= 0){
     if(index >= positiveArrayLength){
       return NULL;

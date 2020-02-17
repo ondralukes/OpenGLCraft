@@ -48,8 +48,15 @@ void destroyBlock(intvec3 pos, double time, Blocks::Block * usedTool, bool updat
         GUI::reload();
       }
     }
+    ch->relight = true;
+    if(update){
+      ch->updateSunlight(pos);
+    }
   }
-  if(update)ch->update();
+  if(update){
+    ch->update();
+
+  }
 }
 
 void removeBlock(intvec3 pos, bool update){
@@ -70,7 +77,11 @@ void removeBlock(intvec3 pos, bool update){
   ch->blocks[relPos.x][relPos.y][relPos.z]->destroy();
   delete ch->blocks[relPos.x][relPos.y][relPos.z];
   ch->blocks[relPos.x][relPos.y][relPos.z] = NULL;
-  if(update)ch->update();
+  if(update){
+    ch->update();
+    ch->updateSunlight(pos);
+  }
+  ch->relight = true;
 }
 
 void addBlock(intvec3 pos, Blocks::Block * bl, bool update){
@@ -90,7 +101,11 @@ void addBlock(intvec3 pos, Blocks::Block * bl, bool update){
     pos.z - chunkPos.z*CHUNK_SIZE
   );
   ch->blocks[relPos.x][relPos.y][relPos.z] = bl;
-  if(update)ch->update();
+  if(update){
+    ch->relight = true;
+    ch->update();
+    ch->updateSunlight(pos);
+  }
 }
 
 Blocks::Block * getBlock(intvec3 pos){
@@ -120,4 +135,14 @@ saveBlock(intvec3 pos){
   Chunk * ch = Chunk::getChunk(chunkPos);
   if(ch == NULL) return;
   SaveManager::main->saveChunk(ch);
+}
+
+int
+getUnderSky(int x, int z){
+  for(int y = 32 * CHUNK_SIZE;y > -8*CHUNK_SIZE;y--){
+    if(isBlock(intvec3(x,y,z))){
+      return y;
+    }
+  }
+  return 0;
 }

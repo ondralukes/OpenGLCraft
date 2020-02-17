@@ -1,17 +1,22 @@
 #version 430 core
 
 in vec2 uv;
+in float light;
 
 out vec4 color;
 
 layout (location=3)uniform sampler2D textureSampler;
 layout (location=4)uniform sampler2D maskSampler;
 layout (location=5)uniform int useMask = 0;
+layout (location=6)uniform int useLight = 0;
 
 void main(){
   color= texture(textureSampler,uv).rgba;
   if(useMask == 1){
   vec4 maskCol = texture(maskSampler,uv).rgba;
   color.rgb =  color.rgb*(1.0f-maskCol.a) + texture(maskSampler,uv).rgb * maskCol.a;
+  }
+  if(useLight == 1){
+  color.rgb = color.rgb * light;
   }
 }
