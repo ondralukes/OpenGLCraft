@@ -552,8 +552,8 @@ int main(){
   }
 
   void recalcThWork(intvec3 * chunkPos){
+    int i = 0;
     while(true){
-      //printf("rcthw\n");
       for(int x =-8;x<8;x++){
         for(int y =-4;y<4;y++){
           for(int z =-8;z<8;z++){
@@ -563,17 +563,17 @@ int main(){
               chunkPos->z + z
             );
             Chunk * ch = Chunk::getChunk(chP);
-
             if(ch != NULL){
-              if(!ch->lightInited){
-                ch->updateLight();
-              }
               if(ch->shouldRecalculate){
                 ch->recalculate();
+              }
+              if(ch->relight || (ch->noLight && i > 3)){
+                ch->updateLight();
               }
             }
           }
         }
       }
+      i++;
     }
   }

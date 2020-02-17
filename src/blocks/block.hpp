@@ -21,7 +21,8 @@ namespace Blocks{
     STONE_AXE = 10,
     WOODEN_SHOVEL = 11,
     STONE_SHOVEL = 12,
-    CHEST = 13
+    CHEST = 13,
+    FIRE = 14
   };
 
   enum tool_type : uint16_t
@@ -60,6 +61,7 @@ namespace Blocks{
     float getHardness(Block * b);
     tool_type toolType = NO_TOOL;
     float toolLevel = 0.0f;
+    bool isLightSource = false;
     bool doDrop = true;
   protected:
     float hardness;

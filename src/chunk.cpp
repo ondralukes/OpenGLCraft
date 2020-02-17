@@ -263,6 +263,7 @@ Chunk::canSeeThrough(intvec3 dir){
   if(dir == intvec3(0,-1,0)) return negY;
   if(dir == intvec3(0,0,1)) return posZ;
   if(dir == intvec3(0,0,-1)) return negZ;
+  return true;
 }
 
 void
@@ -447,23 +448,66 @@ Chunk::draw(glm::mat4 projection, glm::mat4 view){
 }
 
 void
-Chunk::updateLight(bool rec){
-  const std::lock_guard<std::mutex> lock(mtx);
-  //initLight();
-
-
-
-  int c;
-  int s = 1;
-  flowLight(rec?1:4, rec, true);
-  do{
-    c=flowLight(rec?1:4, rec, false);
-    if(c == 0) s--;
-  } while(s > 0);
-  lightInited = true;
-  shouldRecalculate = true;
+Chunk::updateSunlight(intvec3 p){
+  int maxy = p.y;
+  int miny = maxy -1;
+  while (!isBlock(intvec3(p.x,miny,p.z))) {
+    miny--;
+  }
+  int maxchy = floor(maxy/(float)CHUNK_SIZE);
+  int minchy = floor(miny/(float)CHUNK_SIZE);
+  for(int y = minchy; y<= maxchy;y++){
+    intvec3 chunkPos(
+      floor(p.x/(float)CHUNK_SIZE),
+      y,
+      floor(p.z/(float)CHUNK_SIZE)
+    );
+    Chunk * ch = Chunk::getChunk(chunkPos);
+    if(ch == NULL) continue;
+    ch->relight=true;
+  }
 }
 
+void
+Chunk::updateLight(bool rec){
+  std::vector<intvec3> deps;
+  if(useFastLight == 0){
+    for(int dx = -1;dx<=1;dx++){
+      for(int dy = -1;dy<=1;dy++){
+        for(int dz = -1;dz<=1;dz++){
+          Chunk * ch = Chunk::getChunk(pos+intvec3(dx,dy,dz));
+          if(ch == NULL) continue;
+          if(canSeeThrough(intvec3(dx,dy,dz)) && (!useFastLight || ch->noLight)){
+            deps.push_back(pos+intvec3(dx,dy,dz));
+          }
+
+        }
+      }
+    }
+  } else {
+    deps.push_back(pos);
+    useFastLight--;
+  }
+  int r = 0;
+  for(int i = 0;i<deps.size();i++){
+    Chunk * ch = Chunk::getChunk(deps[i]);
+    if(ch != NULL) ch->initLight();
+  }
+
+  while(true){
+    int c = 0;
+    for(int i = 0;i<deps.size();i++){
+      Chunk * ch = Chunk::getChunk(deps[i]);
+      if(ch != NULL) c += ch->flowLight();
+    }
+    if(c==0)break;
+  }
+  for(int i = 0;i<deps.size();i++){
+    Chunk * ch = Chunk::getChunk(deps[i]);
+    if(ch != NULL) ch->shouldRecalculate = true;
+  }
+  if(useFastLight == 0) relight = false;
+}
 
 void
 Chunk::initLight(){
@@ -472,45 +516,39 @@ Chunk::initLight(){
     for(int y = 0; y < CHUNK_SIZE; y++){
       for(int z = 0; z < CHUNK_SIZE; z++){
         light_block * lbl = &light[x][y][z];
-        // if(lbl->dependsOn == NULL){
-          if(!lbl->isSource)light[x][y][z] = light_block();
-        // } else {
-        //   light_block * dep = lbl;
-        //   while(true){
-        //     dep = dep->dependsOn;
-        //     if(dep == NULL) break;
-        //     if(dep->isSource) break;
-        //   }
-        //   if(dep == NULL){
-        //     light[x][y][z] = light_block();
-        //   }
-        // }
+          /*if(!lbl->isSource)*/
+          light[x][y][z] = light_block();
+          if(blocks[x][y][z] == NULL) continue;
+          if(blocks[x][y][z]->isLightSource){
+            light[x][y][z].value = 1.0f;
+            noLight = false;
+          }
       }
     }
   }
-
   //Light blocks directly under sky
   for(int x = 0; x < CHUNK_SIZE; x++){
       for(int z = 0; z < CHUNK_SIZE; z++){
         int y = getUnderSky(x + pos.x * CHUNK_SIZE, z + pos.z * CHUNK_SIZE) + 1;
-
         if(y < (pos.y + 1) *CHUNK_SIZE){
           int miny = y - pos.y*CHUNK_SIZE;
           if(miny < 0) miny = 0;
           for(int ry = miny; ry<CHUNK_SIZE;ry++){
+            if(blocks[x][ry][z] != NULL) continue;
             light[x][ry][z].value = 1.0f;
+            noLight = false;
           }
         }
       }
   }
+  noLight = false;
+
 }
 
 int
-Chunk::flowLight(int depth, bool rec, bool init){
-  if(depth == -1) return 0;
-  if(init) initLight();
+Chunk::flowLight(){
+          //printf("flw %d %d %d\n", pos.x, pos.y,pos.z);
   int c = 0;
-  bool changed[6];
   for(int x = 0; x < CHUNK_SIZE; x++){
     for(int y = 0; y < CHUNK_SIZE; y++){
       for(int z = 0; z < CHUNK_SIZE; z++){
@@ -524,110 +562,71 @@ Chunk::flowLight(int depth, bool rec, bool init){
               r==2?d:0
             );
             p = p + intvec3(x,y,z);
-            //printf("px %d\n",p.x);
-            light_block adjlbl = getLight(p);
+
+            intvec3 fromChunk;
+            light_block adjlbl = getLight(p, &fromChunk);
+
+            //Dont let the light flow back to chunk where it came from
+
             float adjl = adjlbl.value;
 
             //Do not darken in y axis
-            if(r != 1) adjl *= 0.75f;
+            /*if(r != 1)*/ adjl -= 0.1f;
             if(adjl < 0.0f) adjl = 0.0f;
             if(adjl > lbl.value){
+              if(fromChunk != pos){
+                //printf("Cross Chunk dest[%d %d %d] source[%d %d %d] %f -> %f\n",pos.x,pos.y,pos.z,fromChunk.x,fromChunk.y,fromChunk.z,lbl.value,adjl);
+              }
                lbl.value = adjl;
-               lbl.dependsOn = &adjlbl;
                c++;
-               if(x == 0 /*&& p.x != x - 1*/) changed[0] = true;
-               if(x == CHUNK_SIZE - 1  /*&& p.x != x + 1 */) changed[1] = true;
-               if(y == 0 /*&& p.y != y - 1*/) changed[2] = true;
-               if(y == CHUNK_SIZE - 1 /*&& p.y != y + 1*/) changed[3] = true;
-               if(z == 0 /*&& p.z != z - 1*/) changed[4] = true;
-               if(z == CHUNK_SIZE - 1 /*&& p.z != z + 1*/) changed[5] = true;
+               noLight = false;
              }
           }
         }
-        if(lbl.value < 0) lbl = light_block();
         light[x][y][z] = lbl;
       }
     }
   }
-  if(rec){
-
-  for(int d =-1;d<=1;d+=2){
-    for(int r = 0;r<3;r++){
-      intvec3 p(
-        r==0?d:0,
-        r==1?d:0,
-        r==2?d:0
-      );
-      //if(changed[r*2+(d-1)/2]){
-        Chunk * ch = Chunk::getChunk(pos + p);
-        if(ch != NULL){
-          c += ch->flowLight(depth - 1, rec, init);
-        }
-      //}
-    }
-  }
-  if(c>0) flowLight(depth-1,rec,init);
-}
-  if(c>0) shouldRecalculate = true;
-  return c;
-}
-
-void
-Chunk::removeLightBlockedBy(intvec3 p){
-  int max = getUnderSky(p.x, p.z);
-  for(int y = -8*CHUNK_SIZE; y < max;y++){
-    intvec3 chunkPos(
-      floor(p.x/(float)CHUNK_SIZE),
-      floor(y/(float)CHUNK_SIZE),
-      floor(p.z/(float)CHUNK_SIZE)
-    );
-    Chunk * ch = Chunk::getChunk(chunkPos);
-    if(ch == NULL) continue;
-    intvec3 rp(
-      p.x - chunkPos.x*CHUNK_SIZE,
-      y - chunkPos.y*CHUNK_SIZE,
-      p.z - chunkPos.z*CHUNK_SIZE
-    );
-      ch->light[rp.x][rp.y][rp.z] = light_block();
-      ch->lightInited = false;
-  }
+return c;
 }
 
 light_block
-Chunk::getLight(intvec3 p){
+Chunk::getLight(intvec3 p, intvec3 * fromChunk){
   Chunk * ch = this;
   if(p.x<0){
     ch = Chunk::getChunk(ch->pos + intvec3(-1,0,0));
-    p.x = 8+p.x;
+    p.x = CHUNK_SIZE+p.x;
   }
   if(ch == NULL) return light_block();
   if(p.x>=CHUNK_SIZE){
     ch = Chunk::getChunk(ch->pos + intvec3(1,0,0));
-    p.x = p.x-8;
+    p.x = p.x-CHUNK_SIZE;
   }
   if(ch == NULL) return light_block();
 
   if(p.y<0){
     ch = Chunk::getChunk(ch->pos + intvec3(0,-1,0));
-    p.y = 8+p.y;
+    p.y = CHUNK_SIZE+p.y;
   }
   if(ch == NULL) return light_block();
   if(p.y>=CHUNK_SIZE){
     ch = Chunk::getChunk(ch->pos + intvec3(0,1,0));
-    p.y = p.y-8;
+    p.y = p.y-CHUNK_SIZE;
   }
   if(ch == NULL) return light_block();
 
   if(p.z<0){
     ch = Chunk::getChunk(ch->pos + intvec3(0,0,-1));
-    p.z = 8+p.z;
+    p.z = CHUNK_SIZE+p.z;
   }
   if(ch == NULL) return light_block();
   if(p.z>=CHUNK_SIZE){
     ch = Chunk::getChunk(ch->pos + intvec3(0,0,1));
-    p.z = p.z-8;
+    p.z = p.z-CHUNK_SIZE;
   }
+  if(fromChunk != NULL) *fromChunk = intvec3(0,-5000,0);
   if(ch == NULL) return light_block();
-  if(ch->blocks[p.x][p.y][p.z] != NULL) return light_block();
+  if(fromChunk != NULL) *fromChunk = ch->pos;
+
   return ch->light[p.x][p.y][p.z];
 }

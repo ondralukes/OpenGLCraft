@@ -20,12 +20,12 @@
 
 class SaveManager;
 
-#define CHUNK_SIZE 8
+#define CHUNK_SIZE 16
 
 struct light_block{
   float value = 0.0f;
   bool isSource = false;
-  light_block * dependsOn = NULL;
+  intvec3 fromChunk = intvec3(0,-50,0);
 };
 
 class Chunk{
@@ -44,16 +44,19 @@ public:
   bool canSeeThrough(intvec3 dir);
   void recalculate();
   void updateLight(bool rec = true);
-  int flowLight(int depth, bool rec, bool init);
+  int flowLight();
   void initLight();
-  light_block getLight(intvec3 p);
-  static void removeLightBlockedBy(intvec3 p);
+  light_block getLight(intvec3 p, intvec3 * fromChunk = NULL);
   bool isEmpty = true;
   bool isLoaded = false;
-  bool lightInited = false;
+  bool relight = true;
+  bool noLight = true;
+  int useFastLight = 2;
+  int lightInitToken = -1;
   std::atomic<bool> isSafe;
   bool wasRecalculated = true;
   bool shouldRecalculate = true;
+  static void updateSunlight(intvec3 p);
   Blocks::Block * blocks[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
   light_block light[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
 

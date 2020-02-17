@@ -48,9 +48,15 @@ void destroyBlock(intvec3 pos, double time, Blocks::Block * usedTool, bool updat
         GUI::reload();
       }
     }
-    ch->lightInited = false;
+    ch->relight = true;
+    if(update){
+      ch->updateSunlight(pos);
+    }
   }
-  if(update)ch->update();
+  if(update){
+    ch->update();
+
+  }
 }
 
 void removeBlock(intvec3 pos, bool update){
@@ -71,7 +77,11 @@ void removeBlock(intvec3 pos, bool update){
   ch->blocks[relPos.x][relPos.y][relPos.z]->destroy();
   delete ch->blocks[relPos.x][relPos.y][relPos.z];
   ch->blocks[relPos.x][relPos.y][relPos.z] = NULL;
-  if(update)ch->update();
+  if(update){
+    ch->update();
+    ch->updateSunlight(pos);
+  }
+  ch->relight = true;
 }
 
 void addBlock(intvec3 pos, Blocks::Block * bl, bool update){
@@ -92,9 +102,9 @@ void addBlock(intvec3 pos, Blocks::Block * bl, bool update){
   );
   ch->blocks[relPos.x][relPos.y][relPos.z] = bl;
   if(update){
-    ch->removeLightBlockedBy(pos);
+    ch->relight = true;
     ch->update();
-
+    ch->updateSunlight(pos);
   }
 }
 

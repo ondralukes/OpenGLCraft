@@ -79,11 +79,6 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
           }
           ch->update(true);
         }
-          for(int y = 31;y>=-8;y--){
-            if(ch != NULL){
-              ch->lightInited = false;
-            }
-          }
       } else {
         for(int y = 31;y>=-8;y--){
           ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
@@ -92,11 +87,6 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
             ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
           }
           ch->update(false);
-        }
-        for(int y = 31;y>=-8;y--){
-          if(ch != NULL){
-            ch->lightInited = false;
-          }
         }
       }
     }
@@ -176,7 +166,7 @@ WorldGenerator::addCaves(int chx, int chz){
       int tchx = floor(chx/(float)terrainChunkSize) + dtchx;
       int tchz = floor(chz/(float)terrainChunkSize) + dtchz;
       std::mt19937 rnd(seed * 6 * tchx + tchz * 9);
-      int count = floor(getRandFloat(&rnd) * 10.0f);
+      int count = floor(getRandFloat(&rnd) * 20.0f);
       for(int i =0;i < count;i++){
         int sphereCount = floor(getRandFloat(&rnd) * 50.0f + 5.0f);
         int posX = floor(getRandFloat(&rnd) * terrainChunkSize * CHUNK_SIZE) + tchx * terrainChunkSize * CHUNK_SIZE;
