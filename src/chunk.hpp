@@ -25,6 +25,7 @@ class SaveManager;
 struct light_block{
   float value = 0.0f;
   bool isSource = false;
+  bool ready = false;
   intvec3 fromChunk = intvec3(0,-50,0);
 };
 

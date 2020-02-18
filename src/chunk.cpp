@@ -205,7 +205,25 @@ Chunk::recalculateSides(){
                 }
               }
               if(render){
-                float l = getLight(intvec3(x, y, z) + dir).value;
+                light_block lbl = getLight(intvec3(x, y, z) + dir);
+                float l = 0.5f;
+                if(lbl.ready){
+                  l=lbl.value;
+                } else {
+                  for(int d =-1;d<=1;d+=2){
+                    for(int r = 0;r<3;r++){
+                      intvec3 rdydir(
+                        r==0?d:0,
+                        r==1?d:0,
+                        r==2?d:0
+                      );
+                      light_block rdylbl =  getLight(intvec3(x, y, z) + dir + rdydir);
+                      if(rdylbl.ready && rdylbl.value > l){
+                        l = rdylbl.value;
+                      }
+                    }
+                  }
+                }
                 Blocks::Block * bl = blocks[x][y][z];
                 if(bl == NULL) continue;
                 chunk_render_side side(intvec3(x,y,z), dir, bl->textureID, bl->damageLevel, l);
@@ -493,9 +511,9 @@ Chunk::updateLight(bool rec){
     Chunk * ch = Chunk::getChunk(deps[i]);
     if(ch != NULL) ch->initLight();
   }
-
   while(true){
     int c = 0;
+
     for(int i = 0;i<deps.size();i++){
       Chunk * ch = Chunk::getChunk(deps[i]);
       if(ch != NULL) c += ch->flowLight();
@@ -518,10 +536,13 @@ Chunk::initLight(){
         light_block * lbl = &light[x][y][z];
           /*if(!lbl->isSource)*/
           light[x][y][z] = light_block();
+          light[x][y][z].ready = true;
           if(blocks[x][y][z] == NULL) continue;
           if(blocks[x][y][z]->isLightSource){
             light[x][y][z].value = 1.0f;
             noLight = false;
+          } else {
+              light[x][y][z].ready = false;
           }
       }
     }
@@ -565,8 +586,6 @@ Chunk::flowLight(){
 
             intvec3 fromChunk;
             light_block adjlbl = getLight(p, &fromChunk);
-
-            //Dont let the light flow back to chunk where it came from
 
             float adjl = adjlbl.value;
 
