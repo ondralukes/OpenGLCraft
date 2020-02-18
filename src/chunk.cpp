@@ -471,6 +471,7 @@ Chunk::updateSunlight(intvec3 p){
   int miny = maxy -1;
   while (!isBlock(intvec3(p.x,miny,p.z))) {
     miny--;
+    if(miny < CHUNK_SIZE*-9) break;
   }
   int maxchy = floor(maxy/(float)CHUNK_SIZE);
   int minchy = floor(miny/(float)CHUNK_SIZE);
