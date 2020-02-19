@@ -9,6 +9,7 @@ WoodenShovel::WoodenShovel() : Block("textures/woodenShovel.dds"){
   hp = 50;
   maxStack = 1;
   drawFlat = true;
+  fuelValue = 0.15f;
 }
 
 void

@@ -17,6 +17,7 @@ namespace GUIUtils {
     ChestGUI(Blocks::Chest * ch);
     void generateFields(ItemField ** f);
     void leaveGUI();
+    void drawExtras();
     Blocks::Chest * chest;
   };
 }

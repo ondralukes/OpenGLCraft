@@ -1,20 +1,22 @@
-#include "chest.hpp"
+#include "furnace.hpp"
 
 using namespace Blocks;
 
-Chest::Chest() : Block("textures/chest.dds"){
-    data.type = CHEST;
-    hardness = 0.1f;
-    maxStack = 1;
-    content = (inventory_item *) malloc((sizeof(block_data) + sizeof(int)) * 24);
-    memset(content, 0, sizeof(inventory_item) * 24);
+Furnace::Furnace() : Block("textures/furnace.dds"){
+  data.type = FURNACE;
+  hardness = 0.25f;
+  pickaxeEff = 1.0f;
+  maxStack = 1;
+  content = (inventory_item *) malloc((sizeof(block_data) + sizeof(int)) * 3);
+  memset(content, 0, sizeof(inventory_item) * 3);
+  startTime = glfwGetTime();
 }
 
 void
-Chest::destroy(){
+Furnace::destroy(){
   if(doDrop){
     //Drop the content and empty the chest
-    for(int i = 0;i<24;i++){
+    for(int i = 0;i<3;i++){
       if(content[i].block != NULL && content[i].count != 0){
         for(int j = 0;j < content[i].count;j++){
           Block * droppedBlock = decodeBlock(content[i].block->getBlockData(), pos, GUI::mvpID);
@@ -31,36 +33,31 @@ Chest::destroy(){
       content[i].block = NULL;
       content[i].count = NULL;
     }
+    fuel = 0.0f;
+    blockFuelBurnt = 0.0f;
+    burning = false;
     save();
   }
   free(content);
 }
 
 bool
-Chest::rightClick(){
-  GUI::enterGUI(GUI_CHEST, this);
+Furnace::rightClick(){
+  GUI::enterGUI(GUI_FURNACE, this);
   return true;
 }
 
 void
-Chest::setContent(int index, inventory_item data){
-  content[index] = data;
-}
-
-inventory_item
-Chest::getContent(int index){
-  return content[index];
-}
-
-void
-Chest::save(){
+Furnace::save(){
   if(data.dataPos == 0){
-    data.dataPos = SaveManager::main->allocateBlockData((sizeof(block_data) + sizeof(int)) * 24);
+    data.dataPos = SaveManager::main->allocateBlockData((sizeof(block_data) + sizeof(int)) * 3 + 2*sizeof(float));
     saveBlock(pos);
   }
   FILE * fp = SaveManager::main->getBlockDatafp();
   fseek(fp, data.dataPos, SEEK_SET);
-  for(int i = 0;i < 24;i++){
+  fwrite(&fuel, sizeof(float), 1, fp);
+  fwrite(&blockFuelBurnt, sizeof(float), 1, fp);
+  for(int i = 0;i < 3;i++){
     block_data data;
     int count = content[i].count;
     if(content[i].block != NULL){
@@ -76,11 +73,13 @@ Chest::save(){
 }
 
 void
-Chest::load(){
+Furnace::load(){
   if(data.dataPos == 0) return;
   FILE * fp = SaveManager::main->getBlockDatafp();
   fseek(fp, data.dataPos, SEEK_SET);
-  for(int i = 0;i < 24;i++){
+  fread(&fuel, sizeof(float), 1, fp);
+  fread(&blockFuelBurnt, sizeof(float), 1, fp);
+  for(int i = 0;i < 3;i++){
     block_data data;
     data.type = NONE;
     int count = 0;
@@ -89,14 +88,33 @@ Chest::load(){
     if(data.type != NONE){
       content[i].block = Block::decodeBlock(data, intvec3(0,0,0), GUI::mvpID);
       content[i].count = count;
-
     }
   }
-  fseek(fp, data.dataPos, SEEK_SET);
-  char buffer[(sizeof(block_data) + sizeof(int)) * 24];
-  long chsum = 0;
-  fread(buffer, (sizeof(block_data) + sizeof(int)) * 24,1,fp);
-  for(int i =0;i<(sizeof(block_data) + sizeof(int)) * 24;i++){
-    chsum += buffer[i] * i;
+  if(content[0].block != NULL){
+    if(content[0].block->meltsTo != NONE){
+      if(content[2].block != NULL){
+        if(content[2].block->getType() == content[0].block->meltsTo){
+          burning = true;
+        }
+      } else {
+        burning = true;
+      }
+    }
+  }
+}
+
+void
+Furnace::update(){
+  if(burning){
+    double t = glfwGetTime();
+    float d = (t-startTime)*speed;
+    if(d > fuel) d = fuel;
+    blockFuelBurnt += d;
+    fuel -= d;
+    startTime += d/speed;
+    if(fuel == 0.0f) startTime = glfwGetTime();
+  } else{
+    blockFuelBurnt = 0.0f;
+    startTime = glfwGetTime();
   }
 }

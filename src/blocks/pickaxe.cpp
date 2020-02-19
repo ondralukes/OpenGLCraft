@@ -9,6 +9,7 @@ WoodenPickaxe::WoodenPickaxe() : Block("textures/woodenPickaxe.dds"){
   hp = 25;
   maxStack = 1;
   drawFlat = true;
+  fuelValue = 0.15f;
 }
 
 void

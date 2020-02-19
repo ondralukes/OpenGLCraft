@@ -12,6 +12,7 @@ namespace GUIUtils {
     CraftingGUI();
     void generateFields(ItemField ** f);
     void leaveGUI();
+    void drawExtras();
   private:
     static void _update();
     static void _update(int count);

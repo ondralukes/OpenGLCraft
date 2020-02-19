@@ -232,6 +232,8 @@ GUI::enterGUI(gui_type type, Blocks::Block * bl){
     currentGUI = new CraftingGUI();
   } else if (type == GUI_CHEST){
     currentGUI = new ChestGUI((Blocks::Chest *) bl);
+  }  else if (type == GUI_FURNACE){
+    currentGUI = new FurnaceGUI((Blocks::Furnace *) bl);
   }
   reload();
 }
@@ -256,6 +258,10 @@ GUI::draw(glm::vec2 mousePos){
 
   for(int i =0;i<blocks.size();i++){
     if(blocks[i] != NULL) blocks[i]->draw(mousePos);
+  }
+
+  if(currentGUI != NULL){
+    currentGUI->drawExtras();
   }
 
 }

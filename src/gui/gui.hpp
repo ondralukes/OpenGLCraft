@@ -10,6 +10,7 @@
 #include "guiBase.hpp"
 #include "craftingGUI.hpp"
 #include "chestGUI.hpp"
+#include "furnaceGUI.hpp"
 #include "itemStack.hpp"
 #include "itemField.hpp"
 #include "blocks/blocks.hpp"
@@ -24,7 +25,8 @@ class ItemField;
 
 enum gui_type {
   GUI_CRAFTING,
-  GUI_CHEST
+  GUI_CHEST,
+  GUI_FURNACE
 };
 
 class GUI{

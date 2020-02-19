@@ -100,6 +100,11 @@ void addBlock(intvec3 pos, Blocks::Block * bl, bool update){
     pos.y - chunkPos.y*CHUNK_SIZE,
     pos.z - chunkPos.z*CHUNK_SIZE
   );
+  if(ch->blocks[relPos.x][relPos.y][relPos.z] != NULL){
+    ch->blocks[relPos.x][relPos.y][relPos.z]->doDrop = false;
+    ch->blocks[relPos.x][relPos.y][relPos.z]->destroy();
+    delete ch->blocks[relPos.x][relPos.y][relPos.z];
+  }
   ch->blocks[relPos.x][relPos.y][relPos.z] = bl;
   if(update){
     ch->relight = true;

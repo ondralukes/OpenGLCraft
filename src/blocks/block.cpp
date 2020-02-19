@@ -69,6 +69,15 @@ Block::decodeBlock(block_data data, intvec3 pos, GLuint mvpid){
     case FIRE:
       bl = (Block *)new Fire();
       break;
+    case IRON_ORE:
+      bl = (Block *)new IronOre();
+      break;
+    case FURNACE:
+      bl = (Block *)new Furnace();
+      break;
+    case IRON:
+      bl = (Block *)new Iron();
+      break;
     default:
       bl = NULL;
       break;
@@ -130,6 +139,15 @@ Block::getTextureFor(block_type type){
   if(type == FIRE){
     return ResourceManager::getTexture("textures/fire.dds");
   }
+  if(type == IRON_ORE){
+    return ResourceManager::getTexture("textures/ironOre.dds");
+  }
+  if(type == FURNACE){
+    return ResourceManager::getTexture("textures/furnace.dds");
+  }
+  if(type == IRON){
+    return ResourceManager::getTexture("textures/iron.dds");
+  }
   printf("No texture for block!\n");
 }
 
@@ -139,6 +157,7 @@ Block::canPlace(block_type type){
   if(type == WOODEN_PICKAXE || type == STONE_PICKAXE) return false;
   if(type == WOODEN_AXE || type == STONE_AXE) return false;
   if(type == WOODEN_SHOVEL || type == STONE_SHOVEL) return false;
+  if(type == IRON) return false;
   return true;
 }
 

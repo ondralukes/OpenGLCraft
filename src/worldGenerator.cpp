@@ -68,6 +68,7 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
         for(int i = 0; i<peaks.size();i++){
           delete peaks[i];
         }
+        addOres(chunkPos.x, chunkPos.z);
         addCaves(chunkPos.x, chunkPos.z);
         addTrees(chunkPos.x, chunkPos.z);
         Chunk::saveHeader();
@@ -135,7 +136,7 @@ WorldGenerator::addTrees(int chx, int chz){
 
 bool
 WorldGenerator::getHeightAt(int x, int z, int * res){
-  for(int y = 32 * CHUNK_SIZE;y > -30;y--){
+  for(int y = 32 * CHUNK_SIZE;y > -128;y--){
     if(isBlock(intvec3(x,y,z))){
       *res = y;
       return true;
@@ -166,7 +167,7 @@ WorldGenerator::addCaves(int chx, int chz){
       int tchx = floor(chx/(float)terrainChunkSize) + dtchx;
       int tchz = floor(chz/(float)terrainChunkSize) + dtchz;
       std::mt19937 rnd(seed * 6 * tchx + tchz * 9);
-      int count = floor(getRandFloat(&rnd) * 20.0f);
+      int count = floor(getRandFloat(&rnd) * 20.0f + 3.0f);
       for(int i =0;i < count;i++){
         int sphereCount = floor(getRandFloat(&rnd) * 50.0f + 5.0f);
         int posX = floor(getRandFloat(&rnd) * terrainChunkSize * CHUNK_SIZE) + tchx * terrainChunkSize * CHUNK_SIZE;
@@ -186,6 +187,68 @@ WorldGenerator::addCaves(int chx, int chz){
       }
     }
   }
+}
+
+void
+WorldGenerator::addOres(int chx, int chz){
+  for(int dtchx = -1;dtchx <= 1;dtchx++){
+    for(int dtchz = -1;dtchz <= 1;dtchz++){
+      int tchx = floor(chx/(float)terrainChunkSize) + dtchx;
+      int tchz = floor(chz/(float)terrainChunkSize) + dtchz;
+      std::mt19937 rnd(seed * 6 * tchx + tchz * 69);
+      int count = floor(getRandFloat(&rnd) * 100.0f + 100.0f);
+      for(int i =0;i < count;i++){
+        int posX = floor(getRandFloat(&rnd) * terrainChunkSize * CHUNK_SIZE) + tchx * terrainChunkSize * CHUNK_SIZE;
+
+        int posZ = floor(getRandFloat(&rnd) * terrainChunkSize * CHUNK_SIZE) + tchz * terrainChunkSize * CHUNK_SIZE;
+        int posY = getOreDepth(&rnd);
+        intvec3 pos(posX, posY, posZ);
+        intvec3 size(
+          floor(getRandFloat(&rnd) * 4.0f) + 1,
+          floor(getRandFloat(&rnd) * 4.0f) + 1,
+          floor(getRandFloat(&rnd) * 4.0f) + 1
+        );
+        for(int x = 0;x < size.x;x++){
+          for(int y = 0;y < size.y;y++){
+            for(int z = 0;z < size.z;z++){
+              intvec3 p = pos + intvec3(x,y,z);
+              if(getRandFloat(&rnd)>0.75f) continue;
+              if(p.x < chx*CHUNK_SIZE || p.x >= (chx+1)*CHUNK_SIZE) continue;
+              if(p.z < chz*CHUNK_SIZE || p.z >= (chz+1)*CHUNK_SIZE) continue;
+              Blocks::Block * bl = new Blocks::IronOre();
+              bl->pos = p;
+              addBlock(p, bl, false);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+int
+WorldGenerator::getOreDepth(std::mt19937 * rnd){
+  static const float a = 100000.0f;
+  static const float b = -30.0f;
+  static const float c = 15.0f;
+  int bestI = -1;
+  long hi = -1;
+  for(int i = -128;i<512;i++){
+    long val = (*rnd)()*(*rnd)()*(*rnd)();
+    float x = (float)i;
+    long limit = (long) round(a*pow(2.71828f,-(x-b)*(x-b)/(2*c*c)));
+    if(limit == 0){
+      val = 0;
+    } else {
+      val %= limit;
+    }
+    if(val > hi){
+      hi = val;
+      bestI = i;
+    }
+  }
+  return bestI;
 }
 
 bool

@@ -47,13 +47,13 @@ const glm::vec2 Chunk::backUVs[6] = {
 };
 
 const glm::vec2 Chunk::leftUVs[6] = {
-  glm::vec2( 1.0f - margin, 0.25f + margin),
-  glm::vec2( 0.75f + margin, 0.25f + margin),
+  glm::vec2( 1.0f - margin, 0.50f - margin),
   glm::vec2( 0.75f + margin, 0.50f - margin),
+  glm::vec2( 0.75f + margin, 0.25f + margin),
 
-  glm::vec2( 1.0f - margin, 0.25f + margin),
-  glm::vec2( 1.0f - margin,  0.50f - margin),
-  glm::vec2( 0.75f + margin,  0.50f - margin)
+  glm::vec2( 1.0f - margin, 0.50f - margin),
+  glm::vec2( 1.0f - margin,  0.25f + margin),
+  glm::vec2( 0.75f + margin,  0.25f + margin)
 };
 
 const glm::vec2 Chunk::rightUVs[6] = {
@@ -62,9 +62,9 @@ const glm::vec2 Chunk::rightUVs[6] = {
   glm::vec2( 0.25f + margin, 0.25f + margin),
 
 
-  glm::vec2( 0.50f - margin, 0.25f + margin),
-  glm::vec2( 0.50f - margin,  0.50f - margin),
-  glm::vec2( 0.25f + margin,  0.50f - margin)
+  glm::vec2( 0.50f - margin, 0.50f - margin),
+  glm::vec2( 0.50f - margin,  0.25f + margin),
+  glm::vec2( 0.25f + margin,  0.25f + margin)
 };
 
 Chunk *

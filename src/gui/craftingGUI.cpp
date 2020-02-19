@@ -6,7 +6,7 @@ CraftingGUI::CraftingGUI(){
 
 void
 CraftingGUI::leaveGUI(){
-  
+
 }
 
 void
@@ -123,4 +123,9 @@ CraftingGUI::craft(int count){
     }
   }
   update();
+}
+
+void
+CraftingGUI::drawExtras(){
+
 }

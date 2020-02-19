@@ -22,7 +22,10 @@ namespace Blocks{
     WOODEN_SHOVEL = 11,
     STONE_SHOVEL = 12,
     CHEST = 13,
-    FIRE = 14
+    FIRE = 14,
+    IRON_ORE = 15,
+    FURNACE = 16,
+    IRON = 17
   };
 
   enum tool_type : uint16_t
@@ -37,6 +40,7 @@ namespace Blocks{
     block_type type;
     size_t dataPos;
   };
+
   class Block {
   public:
     Block(const char * texpath);
@@ -53,6 +57,7 @@ namespace Blocks{
     GLuint textureID = 100;
     GLuint mvpID;
     int damageLevel = 0;
+    float fuelValue = 0.0f;
     int maxStack = 64;
     bool drawFlat = false;
     intvec3 pos;
@@ -63,6 +68,8 @@ namespace Blocks{
     float toolLevel = 0.0f;
     bool isLightSource = false;
     bool doDrop = true;
+    block_type meltsTo = NONE;
+    float meltFuel = 0.0f;
   protected:
     float hardness;
     float pickaxeEff = 0.0f;

@@ -3,6 +3,7 @@
 
 //List of all blocks
 #include "block.hpp"
+
 #include "grass.hpp"
 #include "stone.hpp"
 #include "dirt.hpp"
@@ -14,5 +15,8 @@
 #include "shovel.hpp"
 #include "chest.hpp"
 #include "fire.hpp"
+#include "ironOre.hpp"
+#include "furnace.hpp"
+#include "iron.hpp"
 
 #endif

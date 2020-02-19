@@ -58,3 +58,8 @@ ChestGUI::leaveGUI(){
   }
   chest->save();
 }
+
+void
+ChestGUI::drawExtras(){
+  
+}

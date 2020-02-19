@@ -35,6 +35,8 @@ class WorldGenerator{
     static bool getHeightAt(int x, int z, int * res);
     static void addTrees(int chx, int chz);
     static void addCaves(int chx, int chz);
+    static void addOres(int chx, int chz);
+    static int getOreDepth(std::mt19937 * rnd);
     static bool makeHole(intvec3 pos, int chx, int chz);
     static const int terrainChunkSize = 4;
 };
