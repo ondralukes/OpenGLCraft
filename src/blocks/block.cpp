@@ -95,6 +95,14 @@ Block::decodeBlock(block_data data, intvec3 pos, GLuint mvpid){
   return bl;
 }
 
+void
+Block::initBlockTextures(){
+  //Load all block textures now, because they would fail to load if called from other thread
+  for(uint16_t bl = 1;bl<(uint16_t)___BLOCKS_END___;bl++){
+    getTextureFor((block_type)bl);
+  }
+}
+
 GLuint
 Block::getTextureFor(block_type type){
   if(type == GRASS){
@@ -148,7 +156,7 @@ Block::getTextureFor(block_type type){
   if(type == IRON){
     return ResourceManager::getTexture("textures/iron.dds");
   }
-  printf("No texture for block!\n");
+  printf("No texture for block! (%d)\n",type);
 }
 
 bool

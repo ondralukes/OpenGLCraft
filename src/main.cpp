@@ -34,7 +34,7 @@ const float playerHeight = 1.75f;
 
 int drawChunks(glm::mat4 projection, glm::mat4 view, intvec3 chunkPos);
 void scrollCallback(GLFWwindow* window, double x, double y);
-void recalcThWork(intvec3 * chunkPos);
+void recalcThWork(intvec3 * chunkPos, bool * shouldEnd);
 
 int lightToken = 123;
 
@@ -97,18 +97,22 @@ int main(){
   mkdir("saves",0777);
   #endif
 
+  printf("[Main] Loading game.\n");
   SaveManager * saveManager = new SaveManager("saves/default", mvpID);
   Chunk::saveManager = saveManager;
   SaveManager::main = saveManager;
   saveManager->loadHeader();
   saveManager->loadInventory();
   WorldGenerator::seed = saveManager->loadSeed();
+  saveManager->loadDroppedBlocks();
+  printf("[Main] Initializing graphics\n");
+  Blocks::Block::initBlockTextures();
   TextManager * text = new TextManager();
   text->init("textures/font.dds");
   Recipes::init();
   GUI::init(mvpID, wWidth, wHeight);
   GUI::reload();
-  saveManager->loadDroppedBlocks();
+
 
   glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_FALSE);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
@@ -136,8 +140,18 @@ int main(){
   glm::mat4 view;
 
   //Pointer for recalculation thread
+  printf("[Main] Starting recalculation thread\n");
   intvec3 * chunkPosPtr = new intvec3(0,0,0);
-  std::thread * th = new std::thread(recalcThWork, chunkPosPtr);
+  bool recalcThShouldEnd = false;
+  std::thread * th = new std::thread(recalcThWork, chunkPosPtr, &recalcThShouldEnd);
+
+  printf("[Main] Starting generator thread\n");
+  WorldGenerator::startGenerator();
+
+  printf("[Main] Ready!\n[Main] Entering main loop.\n");
+
+  //Generate before first frame
+  WorldGenerator::generate(camPos, 0.0f);
 
   do{
     double time = glfwGetTime();
@@ -338,17 +352,25 @@ int main(){
         round(camPos.z)
       );
 
-      yVelocity -= deltaTime*9.81f;
-      inAir = true;
-      if(isBlock(blockPos)){
-        if(yVelocity < 0){
-          yVelocity = 0;
-          camPos.y = blockPos.y + 0.5f + camHeight;
-        }
-        inAir = false;
-      }
+      //Apply gravity
+      Chunk * ch = Chunk::getChunk(chunkPos);
+      if(ch != NULL){
+        if(ch->isSafe){
+          if(deltaTime < 0.1f){
+            yVelocity -= deltaTime*9.81f;
+            inAir = true;
+            if(isBlock(blockPos)){
+              if(yVelocity < 0){
+                yVelocity = 0;
+                camPos.y = blockPos.y + 0.5f + camHeight;
+              }
+              inAir = false;
+            }
 
-      camPos.y += yVelocity * deltaTime;
+            camPos.y += yVelocity * deltaTime;
+          }
+        }
+      }
 
       intvec3 aboveBlockPos(
         round(camPos.x),
@@ -502,13 +524,25 @@ int main(){
     while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
     glfwWindowShouldClose(window) == 0 );
 
+    recalcThShouldEnd = true;
+    printf("[Main] Waiting for recalculation thread to terminate.\n");
+    while(recalcThShouldEnd);
+    printf("[Main] Recalculation thread terminated.\n");
+    printf("[Main] Stopping generator.\n");
+    WorldGenerator::stopGenerator();
+    printf("[Main] Generator stopped.\n");
+
+    printf("[Main] Saving game.\n");
     saveManager->savePlayerPos(camPos);
     saveManager->savePlayerRot(glm::vec2(xAngle, yAngle));
     saveManager->saveInventory();
     saveManager->saveDroppedBlocks();
     saveManager->saveSeed(WorldGenerator::seed);
 
+    printf("[Main] Compressing save.\n");
     saveManager->compress();
+
+    printf("[Main] Cleaning up.\n");
     saveManager->cleanUp();
 
     delete saveManager;
@@ -520,6 +554,7 @@ int main(){
     // Close OpenGL window and terminate GLFW
     glfwTerminate();
 
+    printf("[Main] Done.\n");
     return 0;
   }
 
@@ -551,9 +586,10 @@ int main(){
     GUI::selectedItemIndex = (GUI::selectedItemIndex + 8)%8;
   }
 
-  void recalcThWork(intvec3 * chunkPos){
+  void recalcThWork(intvec3 * chunkPos, bool * shouldEnd){
+    printf("[Recalculation Thread] Started.\n");
     int i = 0;
-    while(true){
+    while(!*shouldEnd){
       for(int x =-8;x<8;x++){
         for(int y =-4;y<4;y++){
           for(int z =-8;z<8;z++){
@@ -576,4 +612,6 @@ int main(){
       }
       i++;
     }
+    printf("[Recalculation Thread] Terminated.\n");
+    *shouldEnd = false;
   }

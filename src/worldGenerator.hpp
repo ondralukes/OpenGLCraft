@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <thread>
 #include <math.h>
 #include <random>
 
@@ -26,9 +27,13 @@ using namespace WorldGeneratorUtils;
 
 class WorldGenerator{
   public:
+    static void startGenerator();
+    static void stopGenerator();
     static void generate(glm::vec3 pos, float deltaTime);
     static unsigned long seed;
   private:
+    static void generatorThWork(bool * shouldEnd);
+    static void generateChunk(int chx, int chz);
     static void generateTerrain(int ** map, int tx, int tz, int xSize, int ySize);
     static void getPeaks(int tchx, int tchz, std::vector<Peak *> * peak);
     static float getRandFloat(std::mt19937 * rnd);
@@ -39,4 +44,7 @@ class WorldGenerator{
     static int getOreDepth(std::mt19937 * rnd);
     static bool makeHole(intvec3 pos, int chx, int chz);
     static const int terrainChunkSize = 4;
+    static std::vector<intvec3> generateQueue;
+    static std::thread * generator;
+    static bool generatorShouldEnd;
 };

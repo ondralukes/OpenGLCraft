@@ -5,7 +5,25 @@
 #include "blockUtils.hpp"
 #include "blocks/blocks.hpp"
 
+std::vector<intvec3> WorldGenerator::generateQueue;
+std::thread * WorldGenerator::generator;
 unsigned long WorldGenerator::seed = 0;
+bool WorldGenerator::generatorShouldEnd = false;
+
+void
+WorldGenerator::startGenerator(){
+  printf("[World Generator] Starting generator.\n");
+  generator = new std::thread(generatorThWork, &generatorShouldEnd);
+}
+
+void
+WorldGenerator::stopGenerator(){
+  printf("[World Generator] Stopping generator.\n");
+  generatorShouldEnd = true;
+  printf("[World Generator] Waiting for generator to terminate.\n");
+  while(generatorShouldEnd);
+  printf("[World Generator] Generator terminated.\n");
+}
 
 void
 WorldGenerator::generate(glm::vec3 pos, float deltaTime){
@@ -20,78 +38,35 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
       if(ch!=NULL){
         if(ch->terrainGenerated) continue;
       }
-      if(ch == NULL){
-        Chunk::setChunk(chunkPos,new Chunk(chunkPos), false);
-        ch = Chunk::getChunk(chunkPos);
-      }
-      ch->terrainGenerated = true;
-      if(!ch->isLoaded){
-        int tchx = floor(chunkPos.x/(float)terrainChunkSize);
-        int tchz = floor(chunkPos.z/(float)terrainChunkSize);
-
-        std::vector<Peak *> peaks;
-        for(int dtchx = -2;dtchx <= 2;dtchx++){
-          for(int dtchz = -2;dtchz <= 2;dtchz++){
-            getPeaks(tchx + dtchx, tchz + dtchz, &peaks);
+      bool added = false;
+      for(int i = generateQueue.size() -1; i >= 0;i--){
+        if(generateQueue[i] != intvec3(0,0,0)){
+          if(i+1 != generateQueue.size()){
+            generateQueue[i+1] = chunkPos;
+            added = true;
           }
-        }
-        std::mt19937 rnd(seed * tchx*tchz + tchz);
-        for(int dx = 0; dx < CHUNK_SIZE; dx++){
-          for(int dz = 0; dz < CHUNK_SIZE; dz++){
-            int x = chunkPos.x*CHUNK_SIZE + dx;
-            int z = chunkPos.z*CHUNK_SIZE + dz;
-            float val = 0.0f;
-            for(int i = 0; i<peaks.size();i++){
-              float v = peaks[i]->getValueAt(x ,z);
-              val += v;
-            }
-            float dirtLayer = getRandFloat(&rnd) * 7.0f + 5.0f;
-            for(int y = -7 * CHUNK_SIZE; y <= round(val); y++){
-            intvec3 pos(
-              x,
-              y,
-              z
-            );
-            Blocks::Block * bl;
-            if(y == round(val)){
-              bl = new Blocks::Grass();
-            } else if(round(val) - y < dirtLayer){
-              bl = new Blocks::Dirt();
-            } else {
-                bl = new Blocks::Stone();
-            }
-            bl->pos = pos;
-            addBlock(pos, bl, false);
-          }
-          }
-        }
-        for(int i = 0; i<peaks.size();i++){
-          delete peaks[i];
-        }
-        addOres(chunkPos.x, chunkPos.z);
-        addCaves(chunkPos.x, chunkPos.z);
-        addTrees(chunkPos.x, chunkPos.z);
-        Chunk::saveHeader();
-        for(int y = 31;y>=-8;y--){
-          ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
-          if(ch==NULL){
-            Chunk::setChunk(intvec3(chunkPos.x,y,chunkPos.z), new Chunk(intvec3(chunkPos.x,y,chunkPos.z)), false);
-            ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
-          }
-          ch->update(true);
-        }
-      } else {
-        for(int y = 31;y>=-8;y--){
-          ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
-          if(ch==NULL){
-            Chunk::setChunk(intvec3(chunkPos.x,y,chunkPos.z), new Chunk(intvec3(chunkPos.x,y,chunkPos.z)), false);
-            ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
-          }
-          ch->update(false);
         }
       }
+      if(!added) generateQueue.push_back(chunkPos);
     }
   }
+}
+
+void
+WorldGenerator::generatorThWork(bool * shouldEnd){
+  while(!*shouldEnd){
+    intvec3 chunk;
+    for(int i = generateQueue.size() - 1; i>=0;i--){
+      chunk = generateQueue[i];
+      if(chunk != intvec3(0,0,0)){
+        generateQueue[i] = intvec3(0,0,0);
+         break;
+      }
+    }
+    if(chunk == intvec3(0,0,0)) continue;
+    generateChunk(chunk.x,chunk.z);
+  }
+  *shouldEnd = false;
 }
 
 void
@@ -130,6 +105,90 @@ WorldGenerator::addTrees(int chx, int chz){
           addBlock(pos, bl, false);
         }
       }
+    }
+  }
+}
+
+void
+WorldGenerator::generateChunk(int chx, int chz){
+  intvec3 chunkPos(
+    chx,
+    -1,
+    chz
+  );
+  Chunk * ch = Chunk::getChunk(chunkPos);
+  if(ch!=NULL){
+    if(ch->terrainGenerated) return;
+  }
+  if(ch == NULL){
+    Chunk::setChunk(chunkPos,new Chunk(chunkPos), false);
+    ch = Chunk::getChunk(chunkPos);
+  }
+  ch->terrainGenerated = true;
+  if(!ch->isLoaded){
+    int tchx = floor(chunkPos.x/(float)terrainChunkSize);
+    int tchz = floor(chunkPos.z/(float)terrainChunkSize);
+
+    std::vector<Peak *> peaks;
+    for(int dtchx = -2;dtchx <= 2;dtchx++){
+      for(int dtchz = -2;dtchz <= 2;dtchz++){
+        getPeaks(tchx + dtchx, tchz + dtchz, &peaks);
+      }
+    }
+    std::mt19937 rnd(seed * tchx*tchz + tchz);
+    for(int dx = 0; dx < CHUNK_SIZE; dx++){
+      for(int dz = 0; dz < CHUNK_SIZE; dz++){
+        int x = chunkPos.x*CHUNK_SIZE + dx;
+        int z = chunkPos.z*CHUNK_SIZE + dz;
+        float val = 0.0f;
+        for(int i = 0; i<peaks.size();i++){
+          float v = peaks[i]->getValueAt(x ,z);
+          val += v;
+        }
+        float dirtLayer = getRandFloat(&rnd) * 7.0f + 5.0f;
+        for(int y = -7 * CHUNK_SIZE; y <= round(val); y++){
+        intvec3 pos(
+          x,
+          y,
+          z
+        );
+        Blocks::Block * bl;
+        if(y == round(val)){
+          bl = new Blocks::Grass();
+        } else if(round(val) - y < dirtLayer){
+          bl = new Blocks::Dirt();
+        } else {
+            bl = new Blocks::Stone();
+        }
+        bl->pos = pos;
+        addBlock(pos, bl, false);
+      }
+      }
+    }
+    for(int i = 0; i<peaks.size();i++){
+      delete peaks[i];
+    }
+    addOres(chunkPos.x, chunkPos.z);
+    addCaves(chunkPos.x, chunkPos.z);
+    addTrees(chunkPos.x, chunkPos.z);
+    Chunk::saveHeader();
+
+    for(int y = 31;y>=-8;y--){
+      ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
+      if(ch==NULL){
+        Chunk::setChunk(intvec3(chunkPos.x,y,chunkPos.z), new Chunk(intvec3(chunkPos.x,y,chunkPos.z)), false);
+        ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
+      }
+      ch->update(true);
+    }
+  } else {
+    for(int y = 31;y>=-8;y--){
+      ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
+      if(ch==NULL){
+        Chunk::setChunk(intvec3(chunkPos.x,y,chunkPos.z), new Chunk(intvec3(chunkPos.x,y,chunkPos.z)), false);
+        ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
+      }
+      ch->update(false);
     }
   }
 }
@@ -199,7 +258,6 @@ WorldGenerator::addOres(int chx, int chz){
       int count = floor(getRandFloat(&rnd) * 100.0f + 100.0f);
       for(int i =0;i < count;i++){
         int posX = floor(getRandFloat(&rnd) * terrainChunkSize * CHUNK_SIZE) + tchx * terrainChunkSize * CHUNK_SIZE;
-
         int posZ = floor(getRandFloat(&rnd) * terrainChunkSize * CHUNK_SIZE) + tchz * terrainChunkSize * CHUNK_SIZE;
         int posY = getOreDepth(&rnd);
         intvec3 pos(posX, posY, posZ);

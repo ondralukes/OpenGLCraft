@@ -25,7 +25,9 @@ namespace Blocks{
     FIRE = 14,
     IRON_ORE = 15,
     FURNACE = 16,
-    IRON = 17
+    IRON = 17,
+
+    ___BLOCKS_END___ = 18
   };
 
   enum tool_type : uint16_t
@@ -45,6 +47,7 @@ namespace Blocks{
   public:
     Block(const char * texpath);
     ~Block();
+    static void initBlockTextures();
     static Block * decodeBlock(block_data data, intvec3 pos, GLuint mvpid);
     static GLuint getTextureFor(block_type type);
     static bool canPlace(block_type type);
