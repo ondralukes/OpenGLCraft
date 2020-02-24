@@ -9,11 +9,13 @@ std::vector<intvec3> WorldGenerator::generateQueue;
 std::thread * WorldGenerator::generator;
 unsigned long WorldGenerator::seed = 0;
 bool WorldGenerator::generatorShouldEnd = false;
+intvec3 WorldGenerator::currentChunkPos = intvec3(0,0,0);
+bool WorldGenerator::deletingChunks = false;
 
 void
 WorldGenerator::startGenerator(){
   printf("[World Generator] Starting generator.\n");
-  generator = new std::thread(generatorThWork, &generatorShouldEnd);
+  generator = new std::thread(generatorThWork, &generatorShouldEnd, &currentChunkPos);
 }
 
 void
@@ -23,10 +25,17 @@ WorldGenerator::stopGenerator(){
   printf("[World Generator] Waiting for generator to terminate.\n");
   while(generatorShouldEnd);
   printf("[World Generator] Generator terminated.\n");
+  generator->join();
+  delete generator;
 }
 
 void
 WorldGenerator::generate(glm::vec3 pos, float deltaTime){
+  currentChunkPos = intvec3(
+    floor(pos.x/CHUNK_SIZE),
+    -1,
+    floor(pos.z/CHUNK_SIZE)
+  );
   for(int tx = -3;tx<=3;tx++){
     for(int tz = -3;tz<=3;tz++){
       intvec3 chunkPos(
@@ -53,7 +62,8 @@ WorldGenerator::generate(glm::vec3 pos, float deltaTime){
 }
 
 void
-WorldGenerator::generatorThWork(bool * shouldEnd){
+WorldGenerator::generatorThWork(bool * shouldEnd, intvec3 * currentChunk){
+
   while(!*shouldEnd){
     intvec3 chunk;
     for(int i = generateQueue.size() - 1; i>=0;i--){
@@ -65,8 +75,16 @@ WorldGenerator::generatorThWork(bool * shouldEnd){
     }
     if(chunk == intvec3(0,0,0)) continue;
     generateChunk(chunk.x,chunk.z);
+
+    if(Chunk::chunksLoaded > 2000){
+    deletingChunks = true;
+    while(deletingChunks);
+    Chunk::deleteDistChunks(*currentChunk);
+    deletingChunks = true;
+  }
   }
   *shouldEnd = false;
+
 }
 
 void
@@ -138,8 +156,8 @@ WorldGenerator::generateChunk(int chx, int chz){
     std::mt19937 rnd(seed * tchx*tchz + tchz);
     for(int dx = 0; dx < CHUNK_SIZE; dx++){
       for(int dz = 0; dz < CHUNK_SIZE; dz++){
-        int x = chunkPos.x*CHUNK_SIZE + dx;
-        int z = chunkPos.z*CHUNK_SIZE + dz;
+         int x = chunkPos.x*CHUNK_SIZE + dx;
+         int z = chunkPos.z*CHUNK_SIZE + dz;
         float val = 0.0f;
         for(int i = 0; i<peaks.size();i++){
           float v = peaks[i]->getValueAt(x ,z);
@@ -172,7 +190,6 @@ WorldGenerator::generateChunk(int chx, int chz){
     addCaves(chunkPos.x, chunkPos.z);
     addTrees(chunkPos.x, chunkPos.z);
     Chunk::saveHeader();
-
     for(int y = 31;y>=-8;y--){
       ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
       if(ch==NULL){

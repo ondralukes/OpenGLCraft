@@ -5,6 +5,8 @@ BlockArray * Chunk::chunks = new BlockArray();
 GLuint Chunk::mvpID;
 SaveManager * Chunk::saveManager;
 std::mutex Chunk::stmtx;
+std::vector<intvec3> Chunk::chunkPositions;
+int Chunk::chunksLoaded = 0;
 
 const glm::vec2 Chunk::upUVs[6] = {
   glm::vec2( 0.75f + margin, 0.25f - margin),
@@ -71,13 +73,11 @@ Chunk *
 Chunk::getChunk(intvec3 pos){
   BlockArray * yz = (BlockArray *)(chunks->get((long)pos.x));
   if(yz == NULL){
-    chunks->set((long)pos.x,(void *)new BlockArray());
-    yz = (BlockArray *)(chunks->get((long)pos.x));
+    return NULL;
   }
   BlockArray * z = (BlockArray *)(yz->get((long)pos.y));
   if(z == NULL){
-    yz->set((long)pos.y,(void*)new BlockArray());
-    z = (BlockArray *)(yz->get((long)pos.y));
+    return NULL;
   }
   Chunk * ch = (Chunk *)(z->get((long)pos.z));
   return ch;
@@ -111,22 +111,59 @@ Chunk::Chunk(intvec3 p){
       }
     }
   }
+  bool inserted = false;
+  for(int i = 0;i<chunkPositions.size();i++){
+    if(chunkPositions[i] == intvec3(0,666,0)){
+      chunkPositions[i] = pos;
+      inserted = true;
+      break;
+    }
+  }
+  if(!inserted) chunkPositions.push_back(pos);
   saveManager->loadChunk(pos,this);
+  chunksLoaded++;
+}
+
+void
+Chunk::deleteDistChunks(intvec3 pos){
+  for(int i = 0;i<chunkPositions.size();i++){
+    if(pos.x - chunkPositions[i].x<-3||pos.x - chunkPositions[i].x>3
+    || pos.z - chunkPositions[i].z<-3||pos.z - chunkPositions[i].z>3){
+      Chunk * ch = Chunk::getChunk(chunkPositions[i]);
+      if(ch != NULL){
+        delete ch;
+        Chunk::setChunk(chunkPositions[i], NULL, false);
+        chunkPositions[i] = intvec3(0,666,0);
+      }
+    }
+  }
+}
+
+Chunk::~Chunk(){
+  chunksLoaded--;
+  destroying = true;
+  isSafe = false;
+  for(int x =0;x<CHUNK_SIZE;x++){
+    for(int y =0;y<CHUNK_SIZE;y++){
+      for(int z =0;z<CHUNK_SIZE;z++){
+        Blocks::Block * tmp = blocks[x][y][z];
+        if(tmp == NULL) continue;
+        tmp->doDrop = false;
+        delete tmp;
+        blocks[x][y][z] = NULL;
+      }
+    }
+  }
+  if(vertexBuffer != -1){
+  glDeleteBuffers(1, &vertexBuffer);
+  glDeleteBuffers(1, &uvBuffer);
+  glDeleteBuffers(1, &lightBuffer);
+}
 }
 
 void
 Chunk::saveHeader(){
   saveManager->saveHeader(Chunk::chunks);
-}
-
-void
-Chunk::addBlock(intvec3 pos, Blocks::Block * bl){
-  blocks[pos.x][pos.y][pos.z] = bl;
-}
-
-void
-Chunk::destroyBlock(intvec3 pos){
-  blocks[pos.x][pos.y][pos.z] = NULL;
 }
 
 void
@@ -162,6 +199,7 @@ Chunk::recalculate(){
 
 void
 Chunk::recalculateSides(){
+  if(destroying) return;
   const std::lock_guard<std::mutex> lock(mtx);
   sidesToRender.clear();
   bool empty = true;
@@ -369,6 +407,7 @@ Chunk::setGlBuffers(){
 
 void
 Chunk::draw(glm::mat4 projection, glm::mat4 view){
+  if(destroying) return;
   const std::lock_guard<std::mutex> lock(mtx);
   if(wasRecalculated) setGlBuffers();
   wasRecalculated = false;

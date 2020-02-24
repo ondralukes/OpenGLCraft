@@ -34,12 +34,14 @@ public:
   static GLuint mvpID;
   static SaveManager * saveManager;
   static BlockArray * chunks;
+  static int chunksLoaded;
   static void saveHeader();
   static Chunk * getChunk(intvec3 pos);
   static void setChunk(intvec3 pos, Chunk * ch, bool saveHeaders = true);
+  static std::vector<intvec3> chunkPositions;
+  static void deleteDistChunks(intvec3 pos);
   Chunk(intvec3 pos);
-  void addBlock(intvec3 pos, Blocks::Block * bl);
-  void destroyBlock(intvec3 pos);
+  ~Chunk();
   void draw(glm::mat4 projection, glm::mat4 view);
   void update(bool save = true);
   bool canSeeThrough(intvec3 dir);
@@ -52,6 +54,7 @@ public:
   bool isLoaded = false;
   bool relight = true;
   bool noLight = true;
+  bool destroying = false;
   int useFastLight = 2;
   int lightInitToken = -1;
   std::atomic<bool> isSafe;

@@ -36,8 +36,6 @@ int drawChunks(glm::mat4 projection, glm::mat4 view, intvec3 chunkPos);
 void scrollCallback(GLFWwindow* window, double x, double y);
 void recalcThWork(intvec3 * chunkPos, bool * shouldEnd);
 
-int lightToken = 123;
-
 int main(){
   srand(time(NULL));
   glewExperimental = true; // Needed for core profile
@@ -211,7 +209,6 @@ int main(){
 
     static bool qPressed = false;
     if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS && !qPressed){
-      lightToken = rand();
       if(!GUI::inGUI && Inventory::getSelectedBlock() != NULL){
         for(int i = 0;i<Inventory::getSelectedCount();i++){
           DroppedBlock * drop = new DroppedBlock(mvpID, Inventory::getSelectedBlock(), camPos);
@@ -593,6 +590,13 @@ int main(){
       for(int x =-8;x<8;x++){
         for(int y =-4;y<4;y++){
           for(int z =-8;z<8;z++){
+            if(WorldGenerator::deletingChunks){
+              printf("[Recalculation Thread] Paused.\n");
+              WorldGenerator::deletingChunks = false;
+              while(!WorldGenerator::deletingChunks);
+              printf("[Recalculation Thread] Resumed.\n");
+              WorldGenerator::deletingChunks = false;
+            }
             intvec3 chP(
               chunkPos->x + x,
               chunkPos->y + y,
