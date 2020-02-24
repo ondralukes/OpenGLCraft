@@ -3,7 +3,6 @@
 #include "chunk.hpp"
 #include "structs.hpp"
 #include "blockUtils.hpp"
-#include "blocks/blocks.hpp"
 
 std::vector<intvec3> WorldGenerator::generateQueue;
 std::thread * WorldGenerator::generator;
@@ -109,7 +108,7 @@ WorldGenerator::addTrees(int chx, int chz){
       intvec3 pos(posX,y+i,posZ);
       Blocks::Block * bl = new Blocks::Wood();
       bl->pos = pos;
-      addBlock(pos, bl, false);
+      addBlockIfNotLoaded(pos, bl);
     }
     intvec3 top(posX,y+h,posZ);
     for(int dx = -3;dx < 3; dx++){
@@ -120,7 +119,7 @@ WorldGenerator::addTrees(int chx, int chz){
           intvec3 pos = top + intvec3(dx,dy,dz);
           Blocks::Block * bl = new Blocks::Leaves();
           bl->pos = pos;
-          addBlock(pos, bl, false);
+          addBlockIfNotLoaded(pos, bl);
         }
       }
     }
@@ -179,7 +178,7 @@ WorldGenerator::generateChunk(int chx, int chz){
             bl = new Blocks::Stone();
         }
         bl->pos = pos;
-        addBlock(pos, bl, false);
+        addBlockIfNotLoaded(pos, bl);
       }
       }
     }
@@ -189,16 +188,7 @@ WorldGenerator::generateChunk(int chx, int chz){
     addOres(chunkPos.x, chunkPos.z);
     addCaves(chunkPos.x, chunkPos.z);
     addTrees(chunkPos.x, chunkPos.z);
-    Chunk::saveHeader();
-    for(int y = 31;y>=-8;y--){
-      ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
-      if(ch==NULL){
-        Chunk::setChunk(intvec3(chunkPos.x,y,chunkPos.z), new Chunk(intvec3(chunkPos.x,y,chunkPos.z)), false);
-        ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
-      }
-      ch->update(true);
-    }
-  } else {
+    
     for(int y = 31;y>=-8;y--){
       ch = Chunk::getChunk(intvec3(chunkPos.x,y,chunkPos.z));
       if(ch==NULL){
@@ -292,7 +282,7 @@ WorldGenerator::addOres(int chx, int chz){
               if(p.z < chz*CHUNK_SIZE || p.z >= (chz+1)*CHUNK_SIZE) continue;
               Blocks::Block * bl = new Blocks::IronOre();
               bl->pos = p;
-              addBlock(p, bl, false);
+              addBlockIfNotLoaded(p, bl);
             }
           }
         }
@@ -337,12 +327,32 @@ WorldGenerator::makeHole(intvec3 pos, int chx, int chz){
         if(p.x < chx*CHUNK_SIZE || p.x >= (chx+1)*CHUNK_SIZE) continue;
         if(p.z < chz*CHUNK_SIZE || p.z >= (chz+1)*CHUNK_SIZE) continue;
         if(!isBlock(p)) emptyBlocks++;
-        removeBlock(p,false);
+        removeBlockIfNotLoaded(p);
       }
     }
   }
 
   return !(emptyBlocks > 200);
+}
+
+void
+WorldGenerator::addBlockIfNotLoaded(intvec3 pos, Blocks::Block * bl){
+  Chunk * ch = chunkOf(pos);
+  if(ch == NULL){
+    addBlock(pos, bl, false);
+  } else if(!ch->isLoaded){
+    addBlock(pos, bl, false);
+  }
+}
+
+void
+WorldGenerator::removeBlockIfNotLoaded(intvec3 pos){
+  Chunk * ch = chunkOf(pos);
+  if(ch == NULL){
+    removeBlock(pos, false);
+  } else if(!ch->isLoaded){
+    removeBlock(pos, false);
+  }
 }
 
 float

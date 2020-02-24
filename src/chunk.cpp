@@ -170,6 +170,11 @@ void
 Chunk::update(bool save){
   shouldRecalculate = true;
   if(save) {
+    if(!this->save){
+      //Save chunk in header
+      saveManager->saveHeader(Chunk::chunks);
+    }
+    this->save = true;
     saveManager->saveChunk(this);
   }
 }

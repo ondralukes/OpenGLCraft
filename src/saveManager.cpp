@@ -69,7 +69,7 @@ SaveManager::write(BlockArray * arr, FILE * fp, int depth, size_t * currentDataP
       pos.z = i;
       Chunk * ch = (Chunk *) arr->get(i);
       if(ch!=NULL){
-        if(ch->posInFile ==0){
+        if(ch->posInFile == 0 && ch->save){
           ch->posInFile = *currentDataPos;
           *currentDataPos += sizeof(Blocks::block_data) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
         }
@@ -94,7 +94,7 @@ SaveManager::write(BlockArray * arr, FILE * fp, int depth, size_t * currentDataP
       pos.z = -i-1;
       Chunk * ch = (Chunk *) arr->get(-i-1);
       if(ch!=NULL){
-        if(ch->posInFile == 0){
+        if(ch->posInFile == 0 && ch->save){
           ch->posInFile = *currentDataPos;
           *currentDataPos += sizeof(Blocks::block_data) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
         }

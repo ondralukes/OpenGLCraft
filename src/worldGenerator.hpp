@@ -9,6 +9,7 @@
 #include <GL/glew.h>
 
 #include "structs.hpp"
+#include "blocks/blocks.hpp"
 
 namespace WorldGeneratorUtils{
   class Peak {
@@ -44,6 +45,8 @@ class WorldGenerator{
     static void addOres(int chx, int chz);
     static int getOreDepth(std::mt19937 * rnd);
     static bool makeHole(intvec3 pos, int chx, int chz);
+    static void addBlockIfNotLoaded(intvec3 pos, Blocks::Block * bl);
+    static void removeBlockIfNotLoaded(intvec3 pos);
     static const int terrainChunkSize = 4;
     static std::vector<intvec3> generateQueue;
     static std::thread * generator;

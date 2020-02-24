@@ -55,6 +55,7 @@ public:
   bool relight = true;
   bool noLight = true;
   bool destroying = false;
+  bool save = false;
   int useFastLight = 2;
   int lightInitToken = -1;
   std::atomic<bool> isSafe;

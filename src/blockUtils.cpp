@@ -113,6 +113,16 @@ void addBlock(intvec3 pos, Blocks::Block * bl, bool update){
   }
 }
 
+Chunk *
+chunkOf(intvec3 pos){
+  intvec3 chunkPos(
+    floor(pos.x/(float)CHUNK_SIZE),
+    floor(pos.y/(float)CHUNK_SIZE),
+    floor(pos.z/(float)CHUNK_SIZE)
+  );
+  return Chunk::getChunk(chunkPos);
+}
+
 Blocks::Block * getBlock(intvec3 pos){
   intvec3 chunkPos(
     floor(pos.x/(float)CHUNK_SIZE),
